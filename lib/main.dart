@@ -54,7 +54,7 @@ class MyApp extends ConsumerWidget {
         }
 
         return MaterialApp(
-          title: '律动天气',
+          title: '轻氧天气',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.createTheme(
             colorScheme: lightColorScheme,

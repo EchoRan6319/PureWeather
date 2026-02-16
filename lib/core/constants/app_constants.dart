@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppConstants {
-  static const String appName = '律动天气';
+  static const String appName = '轻氧天气';
   static const String appVersion = '1.2.1';
-  
+
   static const Duration apiTimeout = Duration(seconds: 15);
   static const Duration cacheValidDuration = Duration(minutes: 30);
-  
+
   static const int maxCities = 10;
   static const int defaultAnimationDuration = 300;
 }
@@ -70,11 +70,11 @@ class WeatherCode {
     901: '冷',
     999: '未知',
   };
-  
+
   static String getDescription(int code) {
     return descriptions[code] ?? '未知';
   }
-  
+
   static IconData getWeatherIcon(int code, {bool isNight = false}) {
     if (code == 100 || code == 150) {
       return isNight ? Icons.nightlight_round : Icons.wb_sunny;

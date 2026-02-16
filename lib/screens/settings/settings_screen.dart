@@ -130,6 +130,17 @@ class SettingsScreen extends ConsumerWidget {
           onTap: () => _showRefreshIntervalDialog(context, ref, settings),
         ),
         ListTile(
+          leading: const Icon(Icons.location_on_outlined),
+          title: const Text('位置显示'),
+          subtitle: Text(
+            settings.locationAccuracyLevel == LocationAccuracyLevel.street
+                ? '展示附近地标/街道'
+                : '展示区/县',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showLocationAccuracyDialog(context, ref, settings),
+        ),
+        ListTile(
           leading: const Icon(Icons.thermostat_outlined),
           title: const Text('温度单位'),
           subtitle: Text(settings.temperatureUnit == 'celsius' ? '摄氏度' : '华氏度'),
@@ -145,7 +156,7 @@ class SettingsScreen extends ConsumerWidget {
       children: [
         ListTile(
           leading: const Icon(Icons.info_outline),
-          title: const Text('关于律动天气'),
+          title: const Text('关于轻氧天气'),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showAboutDialog(context),
         ),
@@ -358,11 +369,57 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  void _showLocationAccuracyDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('位置显示'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<LocationAccuracyLevel>(
+              title: const Text('展示区/县'),
+              subtitle: const Text('定位到行政区级别'),
+              value: LocationAccuracyLevel.district,
+              groupValue: settings.locationAccuracyLevel,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setLocationAccuracyLevel(value);
+                }
+                Navigator.pop(ctx);
+              },
+            ),
+            RadioListTile<LocationAccuracyLevel>(
+              title: const Text('展示附近地标/街道'),
+              subtitle: const Text('精确定位到街道级别'),
+              value: LocationAccuracyLevel.street,
+              groupValue: settings.locationAccuracyLevel,
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setLocationAccuracyLevel(value);
+                }
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: '律动天气',
-      applicationVersion: '1.2.1',
+      applicationName: '轻氧天气',
+      applicationVersion: '2.0',
       applicationIcon: Container(
         width: 64,
         height: 64,

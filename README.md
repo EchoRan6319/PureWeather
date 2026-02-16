@@ -1,10 +1,10 @@
-# 律动天气 (LvDong Weather)
+# 轻氧天气 (Pure Weather)
 
 一款使用 Flutter 和 Material You Design 构建的现代化 Android 天气应用。
 
 ## 预览
 
-律动天气是一款设计精美、功能丰富的天气应用，采用 Material You（Material Design 3）设计语言，支持动态主题色、多城市管理、实时天气数据等功能。
+轻氧天气是一款设计精美、功能丰富的天气应用，采用 Material You（Material Design 3）设计语言，支持动态主题色、多城市管理、实时天气数据等功能。
 
 ## 特性
 

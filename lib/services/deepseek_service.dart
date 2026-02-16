@@ -31,7 +31,7 @@ class DeepSeekService {
     final messages = <Map<String, String>>[
       {
         'role': 'system',
-        'content': '''你是一个专业的天气助手，名叫"律动天气助手"。你的任务是：
+        'content': '''你是一个专业的天气助手，名叫"轻氧天气助手"。你的任务是：
 
 1. **天气信息解读**：用通俗易懂的语言解释当前天气状况
 2. **穿衣建议**：根据温度、湿度、风速等给出穿衣建议

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.echoran.lvdongweather"
+    namespace = "com.echoran.pureweather"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.echoran.lvdongweather"
+        applicationId = "com.echoran.pureweather"
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode

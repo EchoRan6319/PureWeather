@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/city_provider.dart';
 import '../providers/weather_provider.dart';
+import '../providers/settings_provider.dart';
 import 'weather/weather_screen.dart';
 import 'ai_assistant/ai_assistant_screen.dart';
 import 'city_management/city_management_screen.dart';
@@ -46,6 +47,29 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  Future<void> _refreshLocationWithNewAccuracy(
+    LocationAccuracyLevel accuracyLevel,
+  ) async {
+    final defaultCity = ref.read(defaultCityProvider);
+    if (defaultCity == null) return;
+
+    final locationService = ref.read(locationServiceProvider);
+    try {
+      final newLocation = await locationService.getLocationFromCoords(
+        defaultCity.lat,
+        defaultCity.lon,
+        accuracyLevel: accuracyLevel,
+      );
+
+      await ref
+          .read(cityManagerProvider.notifier)
+          .updateDefaultCity(newLocation);
+      await ref.read(weatherProvider.notifier).loadWeather(newLocation);
+    } catch (e) {
+      debugPrint('刷新位置失败: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(locationInitProvider, (previous, next) {
@@ -60,6 +84,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ref.listen(defaultCityProvider, (previous, next) {
       if (next != null) {
         ref.read(weatherProvider.notifier).loadWeather(next);
+      }
+    });
+
+    ref.listen(settingsProvider, (previous, next) {
+      if (previous != null &&
+          previous.locationAccuracyLevel != next.locationAccuracyLevel) {
+        _refreshLocationWithNewAccuracy(next.locationAccuracyLevel);
       }
     });
 

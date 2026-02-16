@@ -169,7 +169,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
             ).animate().scale(duration: 400.ms),
             const SizedBox(height: 24),
             Text(
-              '你好，我是律动天气助手',
+              '你好，我是轻氧天气助手',
               style: Theme.of(context).textTheme.titleLarge,
             ).animate().fadeIn(delay: 200.ms),
             const SizedBox(height: 8),
