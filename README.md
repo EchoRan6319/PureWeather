@@ -1,4 +1,4 @@
-# 律动天气 (LVDong Weather)
+# 律动天气 (LvDong Weather)
 
 一款使用 Flutter 和 Material You Design 构建的现代化 Android 天气应用。
 
