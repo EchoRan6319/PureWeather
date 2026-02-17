@@ -17,6 +17,7 @@ class Location with _$Location {
     required String utcOffset,
     required bool isDefault,
     required int sortOrder,
+    @Default(false) bool isLocated,
   }) = _Location;
 
   factory Location.fromJson(Map<String, dynamic> json) => _$LocationFromJson(json);

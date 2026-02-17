@@ -32,6 +32,7 @@ mixin _$Location {
   String get utcOffset => throw _privateConstructorUsedError;
   bool get isDefault => throw _privateConstructorUsedError;
   int get sortOrder => throw _privateConstructorUsedError;
+  bool get isLocated => throw _privateConstructorUsedError;
 
   /// Serializes this Location to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -60,6 +61,7 @@ abstract class $LocationCopyWith<$Res> {
     String utcOffset,
     bool isDefault,
     int sortOrder,
+    bool isLocated,
   });
 }
 
@@ -89,6 +91,7 @@ class _$LocationCopyWithImpl<$Res, $Val extends Location>
     Object? utcOffset = null,
     Object? isDefault = null,
     Object? sortOrder = null,
+    Object? isLocated = null,
   }) {
     return _then(
       _value.copyWith(
@@ -136,6 +139,10 @@ class _$LocationCopyWithImpl<$Res, $Val extends Location>
                 ? _value.sortOrder
                 : sortOrder // ignore: cast_nullable_to_non_nullable
                       as int,
+            isLocated: null == isLocated
+                ? _value.isLocated
+                : isLocated // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -163,6 +170,7 @@ abstract class _$$LocationImplCopyWith<$Res>
     String utcOffset,
     bool isDefault,
     int sortOrder,
+    bool isLocated,
   });
 }
 
@@ -191,6 +199,7 @@ class __$$LocationImplCopyWithImpl<$Res>
     Object? utcOffset = null,
     Object? isDefault = null,
     Object? sortOrder = null,
+    Object? isLocated = null,
   }) {
     return _then(
       _$LocationImpl(
@@ -238,6 +247,10 @@ class __$$LocationImplCopyWithImpl<$Res>
             ? _value.sortOrder
             : sortOrder // ignore: cast_nullable_to_non_nullable
                   as int,
+        isLocated: null == isLocated
+            ? _value.isLocated
+            : isLocated // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -258,6 +271,7 @@ class _$LocationImpl implements _Location {
     required this.utcOffset,
     required this.isDefault,
     required this.sortOrder,
+    this.isLocated = false,
   });
 
   factory _$LocationImpl.fromJson(Map<String, dynamic> json) =>
@@ -285,10 +299,13 @@ class _$LocationImpl implements _Location {
   final bool isDefault;
   @override
   final int sortOrder;
+  @override
+  @JsonKey()
+  final bool isLocated;
 
   @override
   String toString() {
-    return 'Location(id: $id, name: $name, adm1: $adm1, adm2: $adm2, country: $country, lat: $lat, lon: $lon, tz: $tz, utcOffset: $utcOffset, isDefault: $isDefault, sortOrder: $sortOrder)';
+    return 'Location(id: $id, name: $name, adm1: $adm1, adm2: $adm2, country: $country, lat: $lat, lon: $lon, tz: $tz, utcOffset: $utcOffset, isDefault: $isDefault, sortOrder: $sortOrder, isLocated: $isLocated)';
   }
 
   @override
@@ -309,7 +326,9 @@ class _$LocationImpl implements _Location {
             (identical(other.isDefault, isDefault) ||
                 other.isDefault == isDefault) &&
             (identical(other.sortOrder, sortOrder) ||
-                other.sortOrder == sortOrder));
+                other.sortOrder == sortOrder) &&
+            (identical(other.isLocated, isLocated) ||
+                other.isLocated == isLocated));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -327,6 +346,7 @@ class _$LocationImpl implements _Location {
     utcOffset,
     isDefault,
     sortOrder,
+    isLocated,
   );
 
   /// Create a copy of Location
@@ -356,6 +376,7 @@ abstract class _Location implements Location {
     required final String utcOffset,
     required final bool isDefault,
     required final int sortOrder,
+    final bool isLocated,
   }) = _$LocationImpl;
 
   factory _Location.fromJson(Map<String, dynamic> json) =
@@ -383,6 +404,8 @@ abstract class _Location implements Location {
   bool get isDefault;
   @override
   int get sortOrder;
+  @override
+  bool get isLocated;
 
   /// Create a copy of Location
   /// with the given fields replaced by the non-null parameter values.

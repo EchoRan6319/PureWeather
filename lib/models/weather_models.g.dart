@@ -19,6 +19,7 @@ _$LocationImpl _$$LocationImplFromJson(Map<String, dynamic> json) =>
       utcOffset: json['utcOffset'] as String,
       isDefault: json['isDefault'] as bool,
       sortOrder: (json['sortOrder'] as num).toInt(),
+      isLocated: json['isLocated'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$LocationImplToJson(_$LocationImpl instance) =>
@@ -34,6 +35,7 @@ Map<String, dynamic> _$$LocationImplToJson(_$LocationImpl instance) =>
       'utcOffset': instance.utcOffset,
       'isDefault': instance.isDefault,
       'sortOrder': instance.sortOrder,
+      'isLocated': instance.isLocated,
     };
 
 _$CurrentWeatherImpl _$$CurrentWeatherImplFromJson(Map<String, dynamic> json) =>

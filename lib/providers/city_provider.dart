@@ -48,7 +48,7 @@ class CityManager extends StateNotifier<List<Location>> {
     await _saveCities();
   }
 
-  Future<void> addCityAndSetDefault(Location location) async {
+  Future<void> addCityAndSetDefault(Location location, {bool isLocated = false}) async {
     if (state.any((city) => city.id == location.id)) {
       await setDefaultCity(location.id);
       return;
@@ -56,7 +56,11 @@ class CityManager extends StateNotifier<List<Location>> {
 
     state = state.map((city) => city.copyWith(isDefault: false)).toList();
 
-    final newCity = location.copyWith(sortOrder: state.length, isDefault: true);
+    final newCity = location.copyWith(
+      sortOrder: state.length,
+      isDefault: true,
+      isLocated: isLocated,
+    );
 
     state = [...state, newCity];
     await _saveCities();
@@ -88,7 +92,11 @@ class CityManager extends StateNotifier<List<Location>> {
   Future<void> updateDefaultCity(Location newLocation) async {
     state = state.map((city) {
       if (city.isDefault) {
-        return newLocation.copyWith(isDefault: true, sortOrder: city.sortOrder);
+        return newLocation.copyWith(
+          isDefault: true,
+          sortOrder: city.sortOrder,
+          isLocated: city.isLocated,
+        );
       }
       return city;
     }).toList();
@@ -97,6 +105,16 @@ class CityManager extends StateNotifier<List<Location>> {
   }
 
   Future<void> reorderCities(int oldIndex, int newIndex) async {
+    final locatedCity = state.firstWhere(
+      (c) => c.isLocated,
+      orElse: () => state.first,
+    );
+
+    if (oldIndex == state.indexOf(locatedCity) || 
+        newIndex == state.indexOf(locatedCity)) {
+      return;
+    }
+
     if (newIndex > oldIndex) {
       newIndex -= 1;
     }

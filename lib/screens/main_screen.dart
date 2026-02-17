@@ -5,7 +5,6 @@ import '../providers/weather_provider.dart';
 import '../providers/settings_provider.dart';
 import 'weather/weather_screen.dart';
 import 'ai_assistant/ai_assistant_screen.dart';
-import 'city_management/city_management_screen.dart';
 import 'settings/settings_screen.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -22,7 +21,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   final List<Widget> _screens = const [
     WeatherScreen(),
     AIAssistantScreen(),
-    CityManagementScreen(),
     SettingsScreen(),
   ];
 
@@ -116,11 +114,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             icon: Icon(Icons.psychology_outlined),
             selectedIcon: Icon(Icons.psychology),
             label: 'AI助手',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.location_city_outlined),
-            selectedIcon: Icon(Icons.location_city),
-            label: '城市',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

@@ -5,6 +5,7 @@ import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../services/caiyun_service.dart';
+import '../../services/location_service.dart';
 import '../../widgets/hourly_forecast.dart';
 import '../../widgets/daily_forecast.dart';
 import '../../widgets/weather_alert_card.dart';
@@ -37,6 +38,23 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     await ref.read(weatherProvider.notifier).refresh();
   }
 
+  void _showCitySelector() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => _CitySelectorSheet(
+        onCitySelected: (location, {bool isLocated = false}) async {
+          Navigator.pop(context);
+          await ref
+              .read(cityManagerProvider.notifier)
+              .addCityAndSetDefault(location, isLocated: isLocated);
+          await ref.read(weatherProvider.notifier).loadWeather(location);
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final weatherState = ref.watch(weatherProvider);
@@ -57,6 +75,13 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               expandedHeight: 280,
               floating: false,
               pinned: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.add_location_outlined),
+                  onPressed: _showCitySelector,
+                  tooltip: '添加城市',
+                ),
+              ],
               flexibleSpace: FlexibleSpaceBar(
                 background: _buildCurrentWeather(weatherState, defaultCity),
               ),
@@ -115,11 +140,24 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              location?.name ?? '未知位置',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (location?.isLocated == true) ...[
+                  Icon(
+                    Icons.location_on,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  location?.name ?? '未知位置',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
@@ -422,5 +460,308 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     } catch (_) {
       return false;
     }
+  }
+}
+
+class _CitySelectorSheet extends ConsumerStatefulWidget {
+  final Function(Location, {bool isLocated}) onCitySelected;
+
+  const _CitySelectorSheet({required this.onCitySelected});
+
+  @override
+  ConsumerState<_CitySelectorSheet> createState() => _CitySelectorSheetState();
+}
+
+class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
+  final _searchController = TextEditingController();
+  List<Location> _searchResults = [];
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _searchCities(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+
+    try {
+      final locationService = ref.read(locationServiceProvider);
+      final results = await locationService.searchLocations(query);
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      final locationService = ref.read(locationServiceProvider);
+      final position = await locationService.getCurrentPosition();
+
+      if (position != null) {
+        final location = await locationService.getLocationFromCoords(
+          position.latitude,
+          position.longitude,
+        );
+        widget.onCitySelected(location, isLocated: true);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('无法获取位置，请检查权限设置'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('定位失败: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  String _buildSubtitle(String adm1, String adm2) {
+    final parts = <String>[];
+    if (adm1.isNotEmpty) parts.add(adm1);
+    if (adm2.isNotEmpty && adm2 != adm1) parts.add(adm2);
+    return parts.isEmpty ? '' : parts.join(' ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cities = ref.watch(cityManagerProvider);
+    final defaultCity = ref.watch(defaultCityProvider);
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: '搜索城市',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchResults = [];
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (value) {
+                        setState(() {});
+                        _searchCities(value);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.my_location),
+                        label: const Text('定位当前位置'),
+                        onPressed: _getCurrentLocation,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: _isSearching
+                    ? const Center(child: CircularProgressIndicator())
+                    : _searchResults.isNotEmpty
+                    ? _buildSearchResults()
+                    : _buildCityList(cities, defaultCity, scrollController),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final location = _searchResults[index];
+        return ListTile(
+          leading: const Icon(Icons.location_on_outlined),
+          title: Text(location.name),
+          trailing: IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              widget.onCitySelected(location);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCityList(
+    List<Location> cities,
+    Location? defaultCity,
+    ScrollController scrollController,
+  ) {
+    if (cities.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.location_city,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '还没有添加城市',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '搜索城市或使用定位添加',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final sortedCities = [...cities]
+      ..sort((a, b) {
+        if (a.isLocated) return -1;
+        if (b.isLocated) return 1;
+        return a.sortOrder.compareTo(b.sortOrder);
+      });
+
+    return ListView.builder(
+      controller: scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: sortedCities.length,
+      itemBuilder: (context, index) {
+        final city = sortedCities[index];
+        final isDefault = city.id == defaultCity?.id;
+        final isLocated = city.isLocated;
+        final weatherAsync = ref.watch(weatherForCityProvider(city));
+
+        return Card(
+          color: isDefault
+              ? Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : null,
+          child: ListTile(
+            leading: Icon(
+              isLocated ? Icons.location_on : Icons.star_outline,
+              color: isDefault
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            title: Text(
+              city.name,
+              style: isDefault
+                  ? const TextStyle(fontWeight: FontWeight.w600)
+                  : null,
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                weatherAsync.when(
+                  data: (weather) {
+                    if (weather == null) return const SizedBox();
+                    return Text(
+                      '${weather.current.temp}°',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (_, __) => const SizedBox(),
+                ),
+                if (!isLocated) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: () async {
+                      await ref
+                          .read(cityManagerProvider.notifier)
+                          .removeCity(city.id);
+                    },
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ],
+              ],
+            ),
+            onTap: () async {
+              await ref
+                  .read(cityManagerProvider.notifier)
+                  .setDefaultCity(city.id);
+              await ref.read(weatherProvider.notifier).loadWeather(city);
+              Navigator.pop(context);
+            },
+          ),
+        );
+      },
+    );
   }
 }
