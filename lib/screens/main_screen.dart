@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/city_provider.dart';
 import '../providers/weather_provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/notification_service.dart';
 import 'weather/weather_screen.dart';
 import 'ai_assistant/ai_assistant_screen.dart';
 import 'settings/settings_screen.dart';
@@ -28,14 +30,75 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initLocation();
+      _initApp();
     });
   }
 
-  Future<void> _initLocation() async {
+  Future<void> _initApp() async {
     if (_hasInitialized) return;
     _hasInitialized = true;
 
+    final isFirstRun = await notificationServiceProvider.isFirstRun();
+    
+    if (isFirstRun) {
+      await _requestPermissionsOnFirstRun();
+      await notificationServiceProvider.markFirstRunCompleted();
+    }
+
+    await _initLocation();
+  }
+
+  Future<void> _requestPermissionsOnFirstRun() async {
+    final hasLocationPermission = await ref
+        .read(locationInitProvider.notifier)
+        .requestLocationPermission();
+    
+    if (!hasLocationPermission) {
+      _showPermissionDialog(
+        '定位权限',
+        '轻氧天气需要定位权限来获取您当前位置的天气信息。请在设置中授予定位权限。',
+      );
+    }
+
+    final hasNotificationPermission = await notificationServiceProvider
+        .requestNotificationPermission();
+    
+    if (!hasNotificationPermission) {
+      _showPermissionDialog(
+        '通知权限',
+        '轻氧天气需要通知权限来推送天气预警信息。请在设置中授予通知权限。',
+      );
+    }
+    
+    await notificationServiceProvider.markNotificationPermissionRequested();
+  }
+
+  void _showPermissionDialog(String title, String message) {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('稍后设置'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              openAppSettings();
+            },
+            child: const Text('去设置'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _initLocation() async {
     await ref.read(locationInitProvider.notifier).requestLocationPermission();
     await ref.read(locationInitProvider.notifier).initLocation();
 

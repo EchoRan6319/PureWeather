@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../services/notification_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -109,7 +111,17 @@ class SettingsScreen extends ConsumerWidget {
           title: const Text('天气预警通知'),
           subtitle: const Text('接收极端天气预警推送'),
           value: settings.notificationsEnabled,
-          onChanged: (value) {
+          onChanged: (value) async {
+            if (value) {
+              final hasPermission = await notificationServiceProvider
+                  .requestNotificationPermission();
+              if (!hasPermission) {
+                if (context.mounted) {
+                  _showPermissionDeniedDialog(context);
+                }
+                return;
+              }
+            }
             ref.read(settingsProvider.notifier).setNotificationsEnabled(value);
           },
         ),
@@ -622,6 +634,29 @@ class SettingsScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _showPermissionDeniedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('需要通知权限'),
+        content: const Text('轻氧天气需要通知权限才能推送天气预警。请在系统设置中授予通知权限。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              openAppSettings();
+            },
+            child: const Text('去设置'),
+          ),
+        ],
       ),
     );
   }

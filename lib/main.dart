@@ -7,11 +7,15 @@ import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/main_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await dotenv.load(fileName: ".env");
+  
+  await notificationServiceProvider.initialize();
+  await notificationServiceProvider.createNotificationChannel();
   
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.edgeToEdge,
