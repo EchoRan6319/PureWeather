@@ -102,9 +102,9 @@ class AppTheme {
       useMaterial3: useMaterial3,
       colorScheme: colorScheme,
       brightness: colorScheme.brightness,
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: colorScheme.surfaceContainer,
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.surfaceContainer,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 3,

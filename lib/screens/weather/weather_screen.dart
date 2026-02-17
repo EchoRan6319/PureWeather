@@ -134,21 +134,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isNight
-              ? [
-                  colorScheme.surface,
-                  colorScheme.surfaceContainerLowest,
-                ]
-              : [
-                  colorScheme.primaryContainer.withValues(alpha: 0.7),
-                  colorScheme.surface,
-                ],
-        ),
-      ),
+      color: colorScheme.surfaceContainer,
       child: Padding(
         padding: const EdgeInsets.only(left: 24, right: 24, bottom: 0, top: 48),
         child: Column(
