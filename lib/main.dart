@@ -6,36 +6,75 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/scheduled_broadcast_provider.dart';
 import 'screens/main_screen.dart';
 import 'services/notification_service.dart';
+import 'services/scheduled_broadcast_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await dotenv.load(fileName: ".env");
-  
+
   await notificationServiceProvider.initialize();
   await notificationServiceProvider.createNotificationChannel();
-  
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.edgeToEdge,
-  );
-  
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+
+  await scheduledBroadcastServiceProvider.initialize();
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scheduleBroadcasts();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _scheduleBroadcasts() async {
+    final settings = ref.read(scheduledBroadcastProvider);
+    await scheduledBroadcastServiceProvider.scheduleBroadcasts(settings);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeSettings = ref.watch(themeProvider);
     final appSettings = ref.watch(settingsProvider);
     final themeNotifier = ref.read(themeProvider.notifier);
+
+    ref.listen<ScheduledBroadcastSettings>(scheduledBroadcastProvider, (
+      previous,
+      next,
+    ) {
+      if (previous != next) {
+        scheduledBroadcastServiceProvider.scheduleBroadcasts(next);
+      }
+    });
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -45,8 +84,12 @@ class MyApp extends ConsumerWidget {
         if (themeSettings.useDynamicColor && lightDynamic != null) {
           lightColorScheme = lightDynamic;
           darkColorScheme = darkDynamic ?? lightDynamic;
+          debugPrint(
+            '[DynamicColor] Using dynamic colors: primary=${lightDynamic.primary}',
+          );
         } else {
-          final seedColor = themeSettings.seedColor ?? AppTheme.presetSeedColors.first;
+          final seedColor =
+              themeSettings.seedColor ?? AppTheme.presetSeedColors.first;
           lightColorScheme = ColorScheme.fromSeed(
             seedColor: seedColor,
             brightness: Brightness.light,
@@ -55,6 +98,7 @@ class MyApp extends ConsumerWidget {
             seedColor: seedColor,
             brightness: Brightness.dark,
           );
+          debugPrint('[DynamicColor] Using seed color: $seedColor');
         }
 
         return MaterialApp(
@@ -88,10 +132,12 @@ class PredictiveBackGestureHandler extends StatefulWidget {
   const PredictiveBackGestureHandler({super.key, required this.child});
 
   @override
-  State<PredictiveBackGestureHandler> createState() => _PredictiveBackGestureHandlerState();
+  State<PredictiveBackGestureHandler> createState() =>
+      _PredictiveBackGestureHandlerState();
 }
 
-class _PredictiveBackGestureHandlerState extends State<PredictiveBackGestureHandler>
+class _PredictiveBackGestureHandlerState
+    extends State<PredictiveBackGestureHandler>
     with WidgetsBindingObserver {
   @override
   void initState() {

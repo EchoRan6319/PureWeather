@@ -111,20 +111,23 @@ class AppTheme {
         surfaceTintColor: colorScheme.surfaceTint,
       ),
       cardTheme: CardThemeData(
-        color: colorScheme.surfaceContainerHighest,
+        color: colorScheme.surfaceContainer,
         surfaceTintColor: colorScheme.surfaceTint,
-        elevation: 0,
+        elevation: 2,
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1,
+          ),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,
         elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
@@ -146,22 +149,16 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(
-              color: colorScheme.onSecondaryContainer,
-            );
+            return IconThemeData(color: colorScheme.onSecondaryContainer);
           }
-          return IconThemeData(
-            color: colorScheme.onSurfaceVariant,
-          );
+          return IconThemeData(color: colorScheme.onSurfaceVariant);
         }),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: colorScheme.surfaceContainerHighest,
         selectedColor: colorScheme.secondaryContainer,
         labelStyle: TextStyle(color: colorScheme.onSurface),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -182,7 +179,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.error, width: 1),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -221,24 +221,18 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surfaceContainerHigh,
         surfaceTintColor: colorScheme.surfaceTint,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colorScheme.inverseSurface,
         contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
       listTileTheme: ListTileThemeData(
         tileColor: colorScheme.surface,
         selectedTileColor: colorScheme.secondaryContainer,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {

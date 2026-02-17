@@ -131,6 +131,8 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       todayDaily?.sunset,
     );
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -138,14 +140,12 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
           end: Alignment.bottomCenter,
           colors: isNight
               ? [
-                  Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  Theme.of(context).colorScheme.surface,
+                  colorScheme.surface,
+                  colorScheme.surfaceContainerLowest,
                 ]
               : [
-                  Theme.of(context).colorScheme.primaryContainer,
-                  Theme.of(context).colorScheme.surface,
+                  colorScheme.primaryContainer.withValues(alpha: 0.7),
+                  colorScheme.surface,
                 ],
         ),
       ),
@@ -272,14 +272,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   Widget _buildEmptyState() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.primaryContainer,
-            Theme.of(context).colorScheme.surface,
+            colorScheme.primaryContainer.withValues(alpha: 0.7),
+            colorScheme.surface,
           ],
         ),
       ),

@@ -11,8 +11,15 @@
          Flutter UI initializes, as well as behind your Flutter UI while its
          running.
 
-         This Theme is only used starting with V2 of Flutter's Android embedding. -->
-    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+         This Theme is only used starting with V2 of Flutter's Android embedding. 
+         Using Material3 theme for dynamic color support. -->
+    <style name="NormalTheme" parent="Theme.Material3.Light.NoActionBar">
         <item name="android:windowBackground">?android:colorBackground</item>
+        <!-- Enable dynamic color support -->
+        <item name="android:colorPrimary">@android:color/system_accent1_500</item>
+        <item name="android:colorPrimaryDark">@android:color/system_accent1_700</item>
+        <item name="android:colorAccent">@android:color/system_accent2_500</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 </resources>

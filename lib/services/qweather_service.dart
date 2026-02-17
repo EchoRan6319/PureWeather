@@ -57,6 +57,7 @@ class QWeatherService {
 
   Future<Location> searchLocationByCoords(double lat, double lon) async {
     try {
+      print('[QWeather] GET $_baseUrl/geo/reverse?location=$lon,$lat');
       final response = await _dio.get(
         '$_baseUrl/geo/reverse',
         queryParameters: {
@@ -66,6 +67,8 @@ class QWeatherService {
       );
 
       final data = response.data;
+      print('[QWeather] Geo reverse response: $data');
+      
       if (data['code'] == '200' && data['location'] != null) {
         final locations = data['location'] as List;
         if (locations.isNotEmpty) {
@@ -85,9 +88,70 @@ class QWeatherService {
           );
         }
       }
-      throw Exception('Location not found');
+      
+      final errorCode = data['code']?.toString() ?? 'unknown';
+      if (errorCode == '404') {
+        throw Exception('该位置不在和风天气支持范围内（仅支持中国境内）');
+      }
+      throw Exception(_getErrorMessage(errorCode));
+    } on DioException catch (e) {
+      print('[QWeather] DioException: ${e.type} - ${e.message}');
+      print('[QWeather] Response: ${e.response?.data}');
+      String errorMsg;
+      switch (e.type) {
+        case DioExceptionType.connectionError:
+          errorMsg = '网络连接失败，请检查网络';
+          break;
+        case DioExceptionType.connectionTimeout:
+          errorMsg = '连接超时，请重试';
+          break;
+        case DioExceptionType.receiveTimeout:
+          errorMsg = '响应超时，请重试';
+          break;
+        case DioExceptionType.badResponse:
+          final statusCode = e.response?.statusCode;
+          final responseData = e.response?.data;
+          if (responseData is Map && responseData['code'] != null) {
+            final code = responseData['code'].toString();
+            if (code == '404') {
+              errorMsg = '该位置不在和风天气支持范围内（仅支持中国境内）';
+            } else {
+              errorMsg = _getErrorMessage(code);
+            }
+          } else if (statusCode == 404) {
+            errorMsg = 'API地址不存在，请检查API配置';
+          } else {
+            errorMsg = 'HTTP错误: $statusCode';
+          }
+          break;
+        default:
+          errorMsg = '网络请求失败';
+      }
+      throw Exception(errorMsg);
     } catch (e) {
+      print('[QWeather] Unknown error: $e');
       rethrow;
+    }
+  }
+
+  String _getErrorMessage(String code) {
+    switch (code) {
+      case '400':
+        return '请求错误，请检查参数';
+      case '401':
+        return 'API密钥无效或已过期';
+      case '402':
+        return '超过访问次数限制';
+      case '403':
+        return '无访问权限';
+      case '404':
+        return '查询的数据不存在';
+      case '429':
+        return '请求过于频繁，请稍后再试';
+      case '500':
+        return '服务暂时不可用';
+      default:
+        return 'API错误码: $code';
     }
   }
 

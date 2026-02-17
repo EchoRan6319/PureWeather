@@ -34,9 +34,9 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
     _messageController.clear();
     _focusNode.unfocus();
-    
+
     ref.read(chatProvider.notifier).addUserMessage(message);
-    
+
     setState(() {
       _isTyping = true;
       _currentResponse = '';
@@ -49,7 +49,9 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     final weatherContext = _buildWeatherContext(weatherState, defaultCity);
 
     final service = ref.read(deepSeekServiceProvider);
-    final history = ref.read(chatProvider).messages
+    final history = ref
+        .read(chatProvider)
+        .messages
         .where((m) => m.role != 'system')
         .toList();
 
@@ -69,9 +71,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
       ref.read(chatProvider.notifier).addAssistantMessage(_currentResponse);
     } catch (e) {
-      ref.read(chatProvider.notifier).addAssistantMessage(
-        '抱歉，发生了错误。请稍后再试。',
-      );
+      ref.read(chatProvider.notifier).addAssistantMessage('抱歉，发生了错误。请稍后再试。');
     } finally {
       setState(() {
         _isTyping = false;
@@ -176,8 +176,8 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
             Text(
               '我可以帮你解答天气相关问题，提供穿衣建议、出行提醒等',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 300.ms),
             const SizedBox(height: 32),
@@ -200,6 +200,11 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   Widget _buildQuickAction(String text) {
     return ActionChip(
       label: Text(text),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      side: BorderSide(
+        color: Theme.of(context).colorScheme.outlineVariant,
+        width: 1,
+      ),
       onPressed: () {
         _messageController.text = text;
         _sendMessage();
@@ -211,7 +216,8 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: session.messages.length + (_currentResponse.isNotEmpty ? 1 : 0),
+      itemCount:
+          session.messages.length + (_currentResponse.isNotEmpty ? 1 : 0),
       itemBuilder: (context, index) {
         if (index < session.messages.length) {
           final message = session.messages[index];
@@ -220,10 +226,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
             isUser: message.role == 'user',
           ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.1);
         } else {
-          return _ChatBubble(
-            message: _currentResponse,
-            isUser: false,
-          );
+          return _ChatBubble(message: _currentResponse, isUser: false);
         }
       },
     );
@@ -251,8 +254,8 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
           Text(
             '正在思考...',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -280,8 +283,28 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               focusNode: _focusNode,
               decoration: InputDecoration(
                 hintText: '输入消息...',
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainer,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 1,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -308,10 +331,7 @@ class _ChatBubble extends StatelessWidget {
   final String message;
   final bool isUser;
 
-  const _ChatBubble({
-    required this.message,
-    required this.isUser,
-  });
+  const _ChatBubble({required this.message, required this.isUser});
 
   @override
   Widget build(BuildContext context) {
@@ -326,21 +346,29 @@ class _ChatBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: isUser
               ? Theme.of(context).colorScheme.primaryContainer
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
+              : Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
             bottomLeft: Radius.circular(isUser ? 16 : 4),
             bottomRight: Radius.circular(isUser ? 4 : 16),
           ),
+          border: isUser
+              ? null
+              : Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  width: 1,
+                ),
         ),
         child: Text(
           message,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isUser
-                    ? Theme.of(context).colorScheme.onPrimaryContainer
-                    : Theme.of(context).colorScheme.onSurface,
-              ),
+            color: isUser
+                ? Theme.of(context).colorScheme.onPrimaryContainer
+                : Theme.of(context).colorScheme.onSurface,
+          ),
         ),
       ),
     );
