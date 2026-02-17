@@ -33,6 +33,7 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.brightness_6_outlined,
                 title: '主题模式',
                 subtitle: _getThemeModeName(themeSettings.themeMode),
+
                 onTap: () => _showThemeModeDialog(context, ref, themeSettings),
               ),
               _SettingsTile(
@@ -182,12 +183,9 @@ class SettingsScreen extends ConsumerWidget {
                 title: '检查更新',
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('已是最新版本'),
+                    const SnackBar(
+                      content: Text('已是最新版本'),
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   );
                 },

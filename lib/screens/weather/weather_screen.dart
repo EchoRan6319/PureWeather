@@ -6,7 +6,6 @@ import '../../providers/city_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../services/caiyun_service.dart';
-import '../../services/location_service.dart';
 import '../../widgets/hourly_forecast.dart';
 import '../../widgets/daily_forecast.dart';
 import '../../widgets/weather_alert_card.dart';
@@ -629,13 +628,6 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
         );
       }
     }
-  }
-
-  String _buildSubtitle(String adm1, String adm2) {
-    final parts = <String>[];
-    if (adm1.isNotEmpty) parts.add(adm1);
-    if (adm2.isNotEmpty && adm2 != adm1) parts.add(adm2);
-    return parts.isEmpty ? '' : parts.join(' ');
   }
 
   @override
