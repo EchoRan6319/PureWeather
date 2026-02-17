@@ -73,7 +73,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 280,
+              expandedHeight: 240,
               floating: false,
               pinned: true,
               actions: [
@@ -150,7 +150,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 0, top: 48),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -320,7 +320,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 6, bottom: 12),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
