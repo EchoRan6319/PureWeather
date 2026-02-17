@@ -205,26 +205,82 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     ThemeSettings settings,
   ) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('主题模式'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: AppThemeMode.values.map((mode) {
-            return RadioListTile<AppThemeMode>(
-              title: Text(_getThemeModeName(mode)),
-              value: mode,
-              groupValue: settings.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setThemeMode(value);
-                }
-                Navigator.pop(ctx);
-              },
-            );
-          }).toList(),
-        ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.4,
+        minChildSize: 0.3,
+        maxChildSize: 0.6,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  '主题模式',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: AppThemeMode.values.length,
+                  itemBuilder: (context, index) {
+                    final mode = AppThemeMode.values[index];
+                    final isSelected = settings.themeMode == mode;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: isSelected
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer.withOpacity(0.3)
+                          : null,
+                      child: ListTile(
+                        leading: Radio<AppThemeMode>(
+                          value: mode,
+                          groupValue: settings.themeMode,
+                          onChanged: (value) {
+                            if (value != null) {
+                              ref
+                                  .read(themeProvider.notifier)
+                                  .setThemeMode(value);
+                            }
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                        title: Text(_getThemeModeName(mode)),
+                        onTap: () {
+                          ref.read(themeProvider.notifier).setThemeMode(mode);
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        },
       ),
     );
   }
@@ -305,26 +361,84 @@ class SettingsScreen extends ConsumerWidget {
   ) {
     final intervals = [15, 30, 60, 120];
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('刷新间隔'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: intervals.map((interval) {
-            return RadioListTile<int>(
-              title: Text('$interval 分钟'),
-              value: interval,
-              groupValue: settings.refreshInterval,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setRefreshInterval(value);
-                }
-                Navigator.pop(ctx);
-              },
-            );
-          }).toList(),
-        ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.4,
+        minChildSize: 0.3,
+        maxChildSize: 0.6,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  '刷新间隔',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: intervals.length,
+                  itemBuilder: (context, index) {
+                    final interval = intervals[index];
+                    final isSelected = settings.refreshInterval == interval;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: isSelected
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer.withOpacity(0.3)
+                          : null,
+                      child: ListTile(
+                        leading: Radio<int>(
+                          value: interval,
+                          groupValue: settings.refreshInterval,
+                          onChanged: (value) {
+                            if (value != null) {
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .setRefreshInterval(value);
+                            }
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                        title: Text('$interval 分钟'),
+                        onTap: () {
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setRefreshInterval(interval);
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        },
       ),
     );
   }
@@ -334,37 +448,87 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     AppSettings settings,
   ) {
-    showDialog(
+    final units = [('celsius', '摄氏度', '°C'), ('fahrenheit', '华氏度', '°F')];
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('温度单位'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<String>(
-              title: const Text('摄氏度 (°C)'),
-              value: 'celsius',
-              groupValue: settings.temperatureUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setTemperatureUnit(value);
-                }
-                Navigator.pop(ctx);
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('华氏度 (°F)'),
-              value: 'fahrenheit',
-              groupValue: settings.temperatureUnit,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(settingsProvider.notifier).setTemperatureUnit(value);
-                }
-                Navigator.pop(ctx);
-              },
-            ),
-          ],
-        ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.35,
+        minChildSize: 0.3,
+        maxChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  '温度单位',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: units.length,
+                  itemBuilder: (context, index) {
+                    final (value, name, symbol) = units[index];
+                    final isSelected = settings.temperatureUnit == value;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: isSelected
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer.withOpacity(0.3)
+                          : null,
+                      child: ListTile(
+                        leading: Radio<String>(
+                          value: value,
+                          groupValue: settings.temperatureUnit,
+                          onChanged: (selectedValue) {
+                            if (selectedValue != null) {
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .setTemperatureUnit(selectedValue);
+                            }
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                        title: Text(name),
+                        subtitle: Text('温度显示为 $symbol'),
+                        onTap: () {
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setTemperatureUnit(value);
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        },
       ),
     );
   }
@@ -374,43 +538,90 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     AppSettings settings,
   ) {
-    showDialog(
+    final options = [
+      (LocationAccuracyLevel.district, '展示区/县', '定位到行政区级别'),
+      (LocationAccuracyLevel.street, '展示附近地标/街道', '精确定位到街道级别'),
+    ];
+
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('位置显示'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<LocationAccuracyLevel>(
-              title: const Text('展示区/县'),
-              subtitle: const Text('定位到行政区级别'),
-              value: LocationAccuracyLevel.district,
-              groupValue: settings.locationAccuracyLevel,
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setLocationAccuracyLevel(value);
-                }
-                Navigator.pop(ctx);
-              },
-            ),
-            RadioListTile<LocationAccuracyLevel>(
-              title: const Text('展示附近地标/街道'),
-              subtitle: const Text('精确定位到街道级别'),
-              value: LocationAccuracyLevel.street,
-              groupValue: settings.locationAccuracyLevel,
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setLocationAccuracyLevel(value);
-                }
-                Navigator.pop(ctx);
-              },
-            ),
-          ],
-        ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.35,
+        minChildSize: 0.3,
+        maxChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  '位置显示',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final (level, title, subtitle) = options[index];
+                    final isSelected = settings.locationAccuracyLevel == level;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: isSelected
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer.withOpacity(0.3)
+                          : null,
+                      child: ListTile(
+                        leading: Radio<LocationAccuracyLevel>(
+                          value: level,
+                          groupValue: settings.locationAccuracyLevel,
+                          onChanged: (value) {
+                            if (value != null) {
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .setLocationAccuracyLevel(value);
+                            }
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                        title: Text(title),
+                        subtitle: Text(subtitle),
+                        onTap: () {
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setLocationAccuracyLevel(level);
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        },
       ),
     );
   }

@@ -95,4 +95,18 @@ class WeatherCode {
     }
     return Icons.cloud_queue;
   }
+
+  static String convertTemperature(
+    String celsiusTemp, {
+    bool toFahrenheit = false,
+  }) {
+    final celsius = double.tryParse(celsiusTemp);
+    if (celsius == null) return celsiusTemp;
+
+    if (toFahrenheit) {
+      final fahrenheit = (celsius * 9 / 5) + 32;
+      return fahrenheit.round().toString();
+    }
+    return celsius.round().toString();
+  }
 }

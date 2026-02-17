@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/weather_models.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../services/caiyun_service.dart';
 import '../../services/location_service.dart';
@@ -83,7 +84,11 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                background: _buildCurrentWeather(weatherState, defaultCity),
+                background: _buildCurrentWeather(
+                  weatherState,
+                  defaultCity,
+                  ref.watch(settingsProvider),
+                ),
               ),
             ),
             SliverToBoxAdapter(child: _buildContent(weatherState)),
@@ -93,7 +98,11 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
-  Widget _buildCurrentWeather(WeatherState state, Location? location) {
+  Widget _buildCurrentWeather(
+    WeatherState state,
+    Location? location,
+    AppSettings settings,
+  ) {
     if (state.isLoading && state.weatherData == null) {
       return Container(
         decoration: BoxDecoration(
@@ -170,7 +179,10 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  weather.current.temp,
+                  WeatherCode.convertTemperature(
+                    weather.current.temp,
+                    toFahrenheit: settings.temperatureUnit == 'fahrenheit',
+                  ),
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                     fontWeight: FontWeight.w300,
                     fontSize: 72,
@@ -179,7 +191,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    '°',
+                    settings.temperatureUnit == 'fahrenheit' ? '°F' : '°',
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                 ),
@@ -208,21 +220,30 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildTempInfo('最高', '${weather.daily.first.tempMax}°'),
+                _buildTempInfo(
+                  '最高',
+                  '${WeatherCode.convertTemperature(weather.daily.first.tempMax, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                ),
                 Container(
                   width: 1,
                   height: 16,
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   color: Theme.of(context).colorScheme.outline,
                 ),
-                _buildTempInfo('最低', '${weather.daily.first.tempMin}°'),
+                _buildTempInfo(
+                  '最低',
+                  '${WeatherCode.convertTemperature(weather.daily.first.tempMin, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                ),
                 Container(
                   width: 1,
                   height: 16,
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   color: Theme.of(context).colorScheme.outline,
                 ),
-                _buildTempInfo('体感', '${weather.current.feelsLike}°'),
+                _buildTempInfo(
+                  '体感',
+                  '${WeatherCode.convertTemperature(weather.current.feelsLike, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                ),
               ],
             ),
           ],
@@ -319,6 +340,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             sunset: weather.daily.isNotEmpty
                 ? weather.daily.first.sunset
                 : null,
+            temperatureUnit: ref.watch(settingsProvider).temperatureUnit,
           ),
           const SizedBox(height: 6),
           DailyForecast(
@@ -330,6 +352,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             sunset: weather.daily.isNotEmpty
                 ? weather.daily.first.sunset
                 : null,
+            temperatureUnit: ref.watch(settingsProvider).temperatureUnit,
           ),
           const SizedBox(height: 6),
           if (state.airQuality != null) ...[
@@ -806,8 +829,16 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                 weatherAsync.when(
                   data: (weather) {
                     if (weather == null) return const SizedBox();
+                    final settings = ref.watch(settingsProvider);
+                    final convertedTemp = WeatherCode.convertTemperature(
+                      weather.current.temp,
+                      toFahrenheit: settings.temperatureUnit == 'fahrenheit',
+                    );
+                    final unit = settings.temperatureUnit == 'fahrenheit'
+                        ? '°F'
+                        : '°';
                     return Text(
-                      '${weather.current.temp}°',
+                      '$convertedTemp$unit',
                       style: Theme.of(context).textTheme.titleMedium,
                     );
                   },

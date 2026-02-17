@@ -7,12 +7,14 @@ class HourlyForecast extends StatelessWidget {
   final List<HourlyWeather> hourly;
   final String? sunrise;
   final String? sunset;
+  final String temperatureUnit;
 
   const HourlyForecast({
     super.key,
     required this.hourly,
     this.sunrise,
     this.sunset,
+    this.temperatureUnit = 'celsius',
   });
 
   @override
@@ -96,6 +98,7 @@ class HourlyForecast extends StatelessWidget {
                     sunrise: sunrise,
                     sunset: sunset,
                     showPrecipitation: hasAnyPrecipitation,
+                    temperatureUnit: temperatureUnit,
                   ),
                 ),
               );
@@ -155,6 +158,7 @@ class _HourlyItem extends StatelessWidget {
   final String? sunrise;
   final String? sunset;
   final bool showPrecipitation;
+  final String temperatureUnit;
 
   const _HourlyItem({
     required this.weather,
@@ -162,6 +166,7 @@ class _HourlyItem extends StatelessWidget {
     this.sunrise,
     this.sunset,
     this.showPrecipitation = true,
+    this.temperatureUnit = 'celsius',
   });
 
   bool _isNightTime(DateTime time) {
@@ -243,8 +248,13 @@ class _HourlyItem extends StatelessWidget {
   }
 
   Widget _buildTempText(BuildContext context) {
+    final convertedTemp = WeatherCode.convertTemperature(
+      weather.temp,
+      toFahrenheit: temperatureUnit == 'fahrenheit',
+    );
+    final unit = temperatureUnit == 'fahrenheit' ? '°F' : '°';
     return Text(
-      '${weather.temp}°',
+      '$convertedTemp$unit',
       style: Theme.of(
         context,
       ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),

@@ -9,6 +9,7 @@ class DailyForecast extends StatelessWidget {
   final CurrentWeather? currentWeather;
   final String? sunrise;
   final String? sunset;
+  final String temperatureUnit;
 
   const DailyForecast({
     super.key,
@@ -16,6 +17,7 @@ class DailyForecast extends StatelessWidget {
     this.currentWeather,
     this.sunrise,
     this.sunset,
+    this.temperatureUnit = 'celsius',
   });
 
   @override
@@ -39,8 +41,8 @@ class DailyForecast extends StatelessWidget {
                 Text(
                   '7天预报',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -52,9 +54,8 @@ class DailyForecast extends StatelessWidget {
                 currentWeather: entry.key == 0 ? currentWeather : null,
                 sunrise: entry.key == 0 ? sunrise : null,
                 sunset: entry.key == 0 ? sunset : null,
-              ).animate().fadeIn(
-                    delay: Duration(milliseconds: 50 * entry.key),
-                  );
+                temperatureUnit: temperatureUnit,
+              ).animate().fadeIn(delay: Duration(milliseconds: 50 * entry.key));
             }),
           ],
         ),
@@ -69,6 +70,7 @@ class _DailyItem extends StatelessWidget {
   final CurrentWeather? currentWeather;
   final String? sunrise;
   final String? sunset;
+  final String temperatureUnit;
 
   const _DailyItem({
     required this.weather,
@@ -76,10 +78,14 @@ class _DailyItem extends StatelessWidget {
     this.currentWeather,
     this.sunrise,
     this.sunset,
+    this.temperatureUnit = 'celsius',
   });
 
   bool _isNightTime() {
-    if (sunrise == null || sunset == null || sunrise!.isEmpty || sunset!.isEmpty) {
+    if (sunrise == null ||
+        sunset == null ||
+        sunrise!.isEmpty ||
+        sunset!.isEmpty) {
       final now = DateTime.now();
       return now.hour >= 18 || now.hour < 6;
     }
@@ -117,7 +123,10 @@ class _DailyItem extends StatelessWidget {
       icon = int.tryParse(currentWeather!.icon) ?? 100;
       text = currentWeather!.text;
     } else {
-      icon = int.tryParse(weather.iconDay) ?? int.tryParse(weather.iconNight) ?? 100;
+      icon =
+          int.tryParse(weather.iconDay) ??
+          int.tryParse(weather.iconNight) ??
+          100;
       text = weather.textDay.isNotEmpty ? weather.textDay : weather.textNight;
     }
 
@@ -135,14 +144,14 @@ class _DailyItem extends StatelessWidget {
                 Text(
                   isToday ? '今天' : weekday,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
-                      ),
+                    fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
                 Text(
                   dateStr,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -173,17 +182,17 @@ class _DailyItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  '${weather.tempMin}°',
+                  '${WeatherCode.convertTemperature(weather.tempMin, toFahrenheit: temperatureUnit == 'fahrenheit')}${temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${weather.tempMax}°',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  '${WeatherCode.convertTemperature(weather.tempMax, toFahrenheit: temperatureUnit == 'fahrenheit')}${temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
               ],
             ),
