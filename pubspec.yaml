@@ -2,7 +2,7 @@ name: pureweather
 description: "轻氧天气 - 一款使用 Material You Design 的天气应用"
 publish_to: 'none'
 
-version: 2.2.0
+version: 2.5.0
 
 environment:
   sdk: ^3.9.0
