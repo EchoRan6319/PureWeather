@@ -2,7 +2,7 @@ name: lvdongweather
 description: "轻氧天气 - 一款使用 Material You Design 的天气应用"
 publish_to: 'none'
 
-version: 2.0.0
+version: 2.1.0
 
 environment:
   sdk: ^3.9.0

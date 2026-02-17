@@ -116,9 +116,9 @@ class QWeatherService {
 
   Future<List<HourlyWeather>> getHourlyWeather(String locationId) async {
     try {
-      print('[QWeather] GET $_baseUrl/weather/24h?location=$locationId');
+      print('[QWeather] GET $_baseUrl/weather/72h?location=$locationId');
       final response = await _dio.get(
-        '$_baseUrl/weather/24h',
+        '$_baseUrl/weather/72h',
         queryParameters: {
           'location': locationId,
           'key': _apiKey,

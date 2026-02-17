@@ -40,7 +40,7 @@ class DailyForecast extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             ...daily.take(7).toList().asMap().entries.map((entry) {
               return _DailyItem(
                 weather: entry.value,

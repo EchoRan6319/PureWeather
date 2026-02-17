@@ -117,6 +117,39 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
 
 ## 运行项目
 
+### 配置清华镜像源（推荐国内用户）
+
+在项目根目录创建 `.flutterrc` 文件：
+
+```json
+{
+  "flutter": {
+    "hosted": "https://mirrors.tuna.tsinghua.edu.cn/dart-pub",
+    "pub": {
+      "hosted": "https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+    }
+  }
+}
+```
+
+或设置环境变量：
+
+```bash
+# Windows PowerShell
+$env:PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+$env:FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
+
+# Windows CMD
+set PUB_HOSTED_URL=https://mirrors.tuna.tsinghua.edu.cn/dart-pub
+set FLUTTER_STORAGE_BASE_URL=https://mirrors.tuna.tsinghua.edu.cn/flutter
+
+# Linux/macOS
+export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
+```
+
+### 构建命令
+
 ```bash
 # 获取依赖
 flutter pub get
@@ -124,14 +157,20 @@ flutter pub get
 # 运行调试版
 flutter run
 
-# 构建 APK
+# 构建 Debug APK（体积较大，包含调试信息）
 flutter build apk --debug
 
-# 构建发布版
-flutter build apk --release
+# 构建 Release APK（体积小巧，推荐）
+flutter build apk --release --target-platform android-arm64
 ```
 
 ## 版本历史
+
+### v2.1.0
+- 24小时预报优化：显示下一小时起24小时数据，响应式布局适配5小时显示
+- 卡片布局统一：所有卡片左对齐，视觉风格一致
+- 详情信息卡片：添加图标，调整位置至空气质量卡片下方
+- API优化：小时预报改用72小时接口获取更完整数据
 
 ### v2.0.0
 - 应用更名：律动天气 → **轻氧天气**

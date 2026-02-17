@@ -26,12 +26,12 @@ class AirQualityCard extends StatelessWidget {
                 Text(
                   '空气质量',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Row(
               children: [
                 _buildAqiCircle(context),
@@ -43,23 +43,23 @@ class AirQualityCard extends StatelessWidget {
                       Text(
                         airQuality.category,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              color: _getAqiColor(context),
-                            ),
+                          fontWeight: FontWeight.w500,
+                          color: _getAqiColor(context),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '主要污染物: ${_getMainPollutant()}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildPollutantsGrid(context),
           ],
         ),
@@ -94,9 +94,9 @@ class AirQualityCard extends StatelessWidget {
             child: Text(
               airQuality.aqi,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: _getAqiColor(context),
-                  ),
+                fontWeight: FontWeight.w600,
+                color: _getAqiColor(context),
+              ),
             ),
           ),
         ),
@@ -114,43 +114,56 @@ class AirQualityCard extends StatelessWidget {
       ('CO', airQuality.co, 'mg/m³'),
     ];
 
-    return Wrap(
-      spacing: 16,
-      runSpacing: 12,
-      children: pollutants.map((p) {
-        return SizedBox(
-          width: 80,
-          child: Column(
-            children: [
-              Text(
-                p.$1,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-              Text(
-                p.$2,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              Text(
-                p.$3,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 10,
-                    ),
-              ),
-            ],
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: pollutants
+              .take(3)
+              .map((p) => _buildPollutantItem(context, p))
+              .toList(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: pollutants
+              .skip(3)
+              .map((p) => _buildPollutantItem(context, p))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPollutantItem(BuildContext context, (String, String, String) p) {
+    return Column(
+      children: [
+        Text(
+          p.$1,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-        );
-      }).toList(),
+        ),
+        Text(
+          p.$2,
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+        ),
+        Text(
+          p.$3,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 10,
+          ),
+        ),
+      ],
     );
   }
 
   Color _getAqiColor(BuildContext context) {
     final aqi = int.tryParse(airQuality.aqi) ?? 0;
-    
+
     if (aqi <= 50) return const Color(0xFF4CAF50);
     if (aqi <= 100) return const Color(0xFFFFEB3B);
     if (aqi <= 150) return const Color(0xFFFF9800);
@@ -167,17 +180,17 @@ class AirQualityCard extends StatelessWidget {
       'NO₂': double.tryParse(airQuality.no2) ?? 0,
       'SO₂': double.tryParse(airQuality.so2) ?? 0,
     };
-    
+
     var maxKey = 'PM2.5';
     var maxValue = 0.0;
-    
+
     values.forEach((key, value) {
       if (value > maxValue) {
         maxValue = value;
         maxKey = key;
       }
     });
-    
+
     return maxKey;
   }
 }
