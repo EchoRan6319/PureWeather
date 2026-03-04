@@ -20,12 +20,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   bool _hasInitialized = false;
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    WeatherScreen(),
-    AIAssistantScreen(),
-    SettingsScreen(),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -39,7 +33,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     _hasInitialized = true;
 
     final isFirstRun = await notificationServiceProvider.isFirstRun();
-    
+
     if (isFirstRun) {
       await _requestPermissionsOnFirstRun();
       await notificationServiceProvider.markFirstRunCompleted();
@@ -49,10 +43,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   Future<void> _requestPermissionsOnFirstRun() async {
-    final hasLocationPermission = await ref
-        .read(locationInitProvider.notifier)
-        .requestLocationPermission();
-    
+    final hasLocationPermission =
+        await ref
+            .read(locationInitProvider.notifier)
+            .requestLocationPermission();
+
     if (!hasLocationPermission) {
       _showPermissionDialog(
         '定位权限',
@@ -62,39 +57,40 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     final hasNotificationPermission = await notificationServiceProvider
         .requestNotificationPermission();
-    
+
     if (!hasNotificationPermission) {
       _showPermissionDialog(
         '通知权限',
         '轻氧天气需要通知权限来推送天气预警信息。请在设置中授予通知权限。',
       );
     }
-    
+
     await notificationServiceProvider.markNotificationPermissionRequested();
   }
 
   void _showPermissionDialog(String title, String message) {
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('稍后设置'),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('稍后设置'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  openAppSettings();
+                },
+                child: const Text('去设置'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              openAppSettings();
-            },
-            child: const Text('去设置'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -131,8 +127,42 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  List<Widget> _getScreens(bool showAIAssistant) {
+    return [
+      const WeatherScreen(),
+      if (showAIAssistant) const AIAssistantScreen(),
+      const SettingsScreen(),
+    ];
+  }
+
+  List<NavigationDestination> _getDestinations(bool showAIAssistant) {
+    return [
+      const NavigationDestination(
+        icon: Icon(Icons.wb_cloudy_outlined),
+        selectedIcon: Icon(Icons.wb_cloudy),
+        label: '天气',
+      ),
+      if (showAIAssistant)
+        const NavigationDestination(
+          icon: Icon(Icons.psychology_outlined),
+          selectedIcon: Icon(Icons.psychology),
+          label: 'AI助手',
+        ),
+      const NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings),
+        label: '设置',
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final appSettings = ref.watch(settingsProvider);
+    final showAI = appSettings.showAIAssistant;
+    final screens = _getScreens(showAI);
+    final destinations = _getDestinations(showAI);
+
     ref.listen(locationInitProvider, (previous, next) {
       if (next.isInitialized) {
         final defaultCity = ref.read(defaultCityProvider);
@@ -149,16 +179,38 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     });
 
     ref.listen(settingsProvider, (previous, next) {
-      if (previous != null &&
-          previous.locationAccuracyLevel != next.locationAccuracyLevel) {
+      if (previous == null) return;
+
+      if (previous.locationAccuracyLevel != next.locationAccuracyLevel) {
         _refreshLocationWithNewAccuracy(next.locationAccuracyLevel);
+      }
+
+      // Handle AI Assistant toggle index shift
+      if (previous.showAIAssistant != next.showAIAssistant) {
+        setState(() {
+          if (next.showAIAssistant) {
+            // If AI Assistant is enabled, and we were on Settings (index 1), shift to 2
+            if (_currentIndex == 1) {
+              _currentIndex = 2;
+            }
+          } else {
+            // If AI Assistant is disabled
+            if (_currentIndex == 1) {
+              // If we were on AI Assistant, switch to Weather
+              _currentIndex = 0;
+            } else if (_currentIndex == 2) {
+              // If we were on Settings, shift to 1
+              _currentIndex = 1;
+            }
+          }
+        });
       }
     });
 
     return Scaffold(
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
-        child: _screens[_currentIndex],
+        child: screens[_currentIndex],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
@@ -167,23 +219,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             _currentIndex = index;
           });
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.wb_cloudy_outlined),
-            selectedIcon: Icon(Icons.wb_cloudy),
-            label: '天气',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.psychology_outlined),
-            selectedIcon: Icon(Icons.psychology),
-            label: 'AI助手',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: '设置',
-          ),
-        ],
+        destinations: destinations,
       ),
     );
   }

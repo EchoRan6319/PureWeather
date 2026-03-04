@@ -10,6 +10,7 @@ class AppSettings {
   final int refreshInterval;
   final String temperatureUnit;
   final bool showFeelsLike;
+  final bool showAIAssistant;
   final LocationAccuracyLevel locationAccuracyLevel;
   final List<String> weatherCardOrder;
 
@@ -20,6 +21,7 @@ class AppSettings {
     this.refreshInterval = 30,
     this.temperatureUnit = 'celsius',
     this.showFeelsLike = true,
+    this.showAIAssistant = true,
     this.locationAccuracyLevel = LocationAccuracyLevel.district,
     this.weatherCardOrder = const [
       'hourly',
@@ -36,6 +38,7 @@ class AppSettings {
     int? refreshInterval,
     String? temperatureUnit,
     bool? showFeelsLike,
+    bool? showAIAssistant,
     LocationAccuracyLevel? locationAccuracyLevel,
     List<String>? weatherCardOrder,
   }) {
@@ -47,6 +50,7 @@ class AppSettings {
       refreshInterval: refreshInterval ?? this.refreshInterval,
       temperatureUnit: temperatureUnit ?? this.temperatureUnit,
       showFeelsLike: showFeelsLike ?? this.showFeelsLike,
+      showAIAssistant: showAIAssistant ?? this.showAIAssistant,
       locationAccuracyLevel:
           locationAccuracyLevel ?? this.locationAccuracyLevel,
       weatherCardOrder: weatherCardOrder ?? this.weatherCardOrder,
@@ -61,6 +65,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const String _keyRefreshInterval = 'refresh_interval';
   static const String _keyTemperatureUnit = 'temperature_unit';
   static const String _keyShowFeelsLike = 'show_feels_like';
+  static const String _keyShowAIAssistant = 'show_ai_assistant';
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
   static const String _keyWeatherCardOrder = 'weather_card_order';
 
@@ -86,6 +91,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       refreshInterval: prefs.getInt(_keyRefreshInterval) ?? 30,
       temperatureUnit: prefs.getString(_keyTemperatureUnit) ?? 'celsius',
       showFeelsLike: prefs.getBool(_keyShowFeelsLike) ?? true,
+      showAIAssistant: prefs.getBool(_keyShowAIAssistant) ?? true,
       locationAccuracyLevel: accuracyLevel,
       weatherCardOrder:
           savedOrder ?? const ['hourly', 'daily', 'airQuality', 'details'],
@@ -126,6 +132,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyShowFeelsLike, value);
     state = state.copyWith(showFeelsLike: value);
+  }
+
+  Future<void> setShowAIAssistant(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyShowAIAssistant, value);
+    state = state.copyWith(showAIAssistant: value);
   }
 
   Future<void> setLocationAccuracyLevel(LocationAccuracyLevel value) async {

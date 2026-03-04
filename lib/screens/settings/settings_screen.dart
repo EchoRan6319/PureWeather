@@ -106,6 +106,15 @@ class SettingsScreen extends ConsumerWidget {
             title: '显示',
             icon: Icons.visibility_outlined,
             children: [
+              _SettingsSwitch(
+                icon: Icons.psychology_outlined,
+                title: '显示 AI 助手',
+                subtitle: '在底部导航栏显示 AI 助手页面',
+                value: appSettings.showAIAssistant,
+                onChanged: (value) {
+                  ref.read(settingsProvider.notifier).setShowAIAssistant(value);
+                },
+              ),
               _SettingsTile(
                 icon: Icons.device_thermostat_outlined,
                 title: '温度单位',
