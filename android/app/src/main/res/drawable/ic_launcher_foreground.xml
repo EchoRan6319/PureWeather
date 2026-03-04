@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!--
+        天气图标设计：太阳半遮云
+        太阳从云朵后方露出，营造晴间多云的意境
+        整体尺寸：54dp x 54dp (占108dp的50%，居中显示)
+    -->
+    <group
+        android:translateX="25"
+        android:translateY="30">
+
+        <!-- 太阳 - 位于左上方，部分被云遮挡 -->
+        <group
+            android:translateX="3"
+            android:translateY="3">
+            <!-- 太阳光芒 -->
+            <path
+                android:fillColor="@android:color/system_accent1_500"
+                android:pathData="M15,1L15,4M15,26L15,29M1,15L4,15M26,15L29,15M5.5,5.5L7.8,7.8M22.2,22.2L24.5,24.5M5.5,24.5L7.8,22.2M22.2,7.8L24.5,5.5"
+                android:strokeColor="@android:color/system_accent1_500"
+                android:strokeWidth="2.5"
+                android:strokeLineCap="round" />
+            <!-- 太阳中心圆 -->
+            <path
+                android:fillColor="@android:color/system_accent1_500"
+                android:pathData="M15,8A7,7 0 1,1 15,22A7,7 0 1,1 15,8Z" />
+        </group>
+
+        <!-- 云朵 - 位于右下方，遮挡部分太阳 -->
+        <group
+            android:translateX="12"
+            android:translateY="14">
+            <!-- 云朵主体 - 圆润的云朵形状 -->
+            <path
+                android:fillColor="@android:color/system_accent2_400"
+                android:pathData="M36,20c0,-5 -4,-9 -9,-9c-0.5,0 -1,0.1 -1.5,0.2c-1.5,-4.5 -5.8,-7.7 -10.8,-7.7c-6.4,0 -11.5,5.2 -11.5,11.5c0,0.4 0,0.8 0.1,1.2C1.9,16.9 0,19.3 0,22c0,3.3 2.7,6 6,6h30c3.3,0 6,-2.7 6,-6S39.3,20 36,20z" />
+        </group>
+
+    </group>
+</vector>
