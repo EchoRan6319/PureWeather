@@ -120,6 +120,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
 
     final weather = state.weatherData;
     if (weather == null) {
+      if (state.errorMessage != null) {
+        return _buildErrorState(state.errorMessage!);
+      }
       return _buildEmptyState();
     }
 
@@ -253,6 +256,59 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
       ],
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colorScheme.errorContainer.withValues(alpha: 0.7),
+            colorScheme.surface,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '加载天气失败',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: _onRefresh,
+                icon: const Icon(Icons.refresh),
+                label: const Text('重试'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

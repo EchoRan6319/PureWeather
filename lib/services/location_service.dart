@@ -165,7 +165,7 @@ class LocationService {
         }
 
         return Location(
-          id: '${lon.toStringAsFixed(1)},${lat.toStringAsFixed(1)}',
+          id: '${lon.toStringAsFixed(2)},${lat.toStringAsFixed(2)}',
           name: locationName,
           adm1: province,
           adm2: city,
@@ -214,7 +214,7 @@ class LocationService {
             final lon = double.parse(coords[0]);
             final lat = double.parse(coords[1]);
 
-            final uid = '${lon.toStringAsFixed(1)},${lat.toStringAsFixed(1)}';
+            final uid = '${lon.toStringAsFixed(2)},${lat.toStringAsFixed(2)}';
             if (seenIds.contains(uid)) continue;
             seenIds.add(uid);
 
@@ -278,7 +278,7 @@ class LocationService {
             final lon = double.parse(location[0]);
             final lat = double.parse(location[1]);
 
-            final uid = '${lon.toStringAsFixed(1)},${lat.toStringAsFixed(1)}';
+            final uid = '${lon.toStringAsFixed(2)},${lat.toStringAsFixed(2)}';
             if (seenIds.contains(uid)) continue;
             seenIds.add(uid);
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/weather_models.dart';
 import '../services/qweather_service.dart';
@@ -67,19 +68,29 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     );
 
     try {
-      final results = await Future.wait([
-        _qweatherService.getFullWeatherData(location.id, location),
-        _qweatherService.getAirQuality(location.id),
-        _caiyunService.getMinuteRain(location.lat, location.lon),
-      ]);
-
-      final weatherData = results[0] as WeatherData;
+      // 1. 获取核心天气数据 (和风天气)
+      final weatherData = await _qweatherService.getFullWeatherData(location.id, location);
       
+      // 2. 尝试获取辅助数据，但不让它们阻塞核心数据
+      AirQuality? airQuality;
+      try {
+        airQuality = await _qweatherService.getAirQuality(location.id);
+      } catch (e) {
+        debugPrint('加载空气质量失败: $e');
+      }
+
+      CaiyunMinuteRain? minuteRain;
+      try {
+        minuteRain = await _caiyunService.getMinuteRain(location.lat, location.lon);
+      } catch (e) {
+        debugPrint('加载彩云天气失败: $e');
+      }
+
       state = WeatherState(
         loadingState: WeatherLoadingState.loaded,
         weatherData: weatherData,
-        airQuality: results[1] as AirQuality?,
-        minuteRain: results[2] as CaiyunMinuteRain?,
+        airQuality: airQuality,
+        minuteRain: minuteRain,
       );
       
       await _checkAndSendAlertNotifications(weatherData.alerts);
