@@ -109,7 +109,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primaryContainer,
+              Theme.of(context).colorScheme.surfaceContainer,
               Theme.of(context).colorScheme.surface,
             ],
           ),

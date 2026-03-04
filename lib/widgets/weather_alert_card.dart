@@ -12,8 +12,9 @@ class WeatherAlertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (alerts.isEmpty) return const SizedBox.shrink();
 
-    final alertColor = _getAlertColor(alerts.first.level);
-    final textColor = _getAlertTextColor(alerts.first.level);
+    final colorScheme = Theme.of(context).colorScheme;
+    final alertColor = _getAlertColor(alerts.first.level, colorScheme);
+    final textColor = _getAlertTextColor(alerts.first.level, colorScheme);
 
     return Container(
           width: double.infinity,
@@ -68,33 +69,33 @@ class WeatherAlertCard extends StatelessWidget {
         );
   }
 
-  Color _getAlertColor(String level) {
+  Color _getAlertColor(String level, ColorScheme colorScheme) {
     switch (level) {
       case '红色':
-        return const Color(0xFFFFEBEE);
+        return colorScheme.errorContainer;
       case '橙色':
-        return const Color(0xFFFFF3E0);
+        return Color.lerp(colorScheme.tertiaryContainer, Colors.orange.withValues(alpha: 0.1), 0.5)!;
       case '黄色':
-        return const Color(0xFFFFFDE7);
+        return Color.lerp(colorScheme.secondaryContainer, Colors.yellow.withValues(alpha: 0.1), 0.5)!;
       case '蓝色':
-        return const Color(0xFFE3F2FD);
+        return colorScheme.primaryContainer;
       default:
-        return const Color(0xFFF5F5F5);
+        return colorScheme.surfaceContainerHighest;
     }
   }
 
-  Color _getAlertTextColor(String level) {
+  Color _getAlertTextColor(String level, ColorScheme colorScheme) {
     switch (level) {
       case '红色':
-        return const Color(0xFFC62828);
+        return colorScheme.onErrorContainer;
       case '橙色':
-        return const Color(0xFFE65100);
+        return colorScheme.onTertiaryContainer;
       case '黄色':
-        return const Color(0xFFF57F17);
+        return colorScheme.onSecondaryContainer;
       case '蓝色':
-        return const Color(0xFF1565C0);
+        return colorScheme.onPrimaryContainer;
       default:
-        return const Color(0xFF424242);
+        return colorScheme.onSurfaceVariant;
     }
   }
 }
@@ -120,13 +121,13 @@ class _AlertItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getLevelColor(),
+                  color: _getLevelColor(Theme.of(context).colorScheme),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   alert.level,
                   style: TextStyle(
-                    color: _getLevelTextColor(),
+                    color: _getLevelTextColor(Theme.of(context).colorScheme),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -138,7 +139,7 @@ class _AlertItem extends StatelessWidget {
                   alert.typeName,
                   style: Theme.of(
                     context,
-                  ).textTheme.titleSmall?.copyWith(color: _getAlertTextColor()),
+                  ).textTheme.titleSmall?.copyWith(color: _getAlertTextColor(alert.level, Theme.of(context).colorScheme)),
                 ),
               ),
             ],
@@ -147,14 +148,14 @@ class _AlertItem extends StatelessWidget {
           Text(
             alert.text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: _getAlertTextColor().withValues(alpha: 0.9),
+              color: _getAlertTextColor(alert.level, Theme.of(context).colorScheme).withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             '发布时间: ${_formatPubTime(alert.pubTime)}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: _getAlertTextColor().withValues(alpha: 0.7),
+              color: _getAlertTextColor(alert.level, Theme.of(context).colorScheme).withValues(alpha: 0.7),
               fontSize: 11,
             ),
           ),
@@ -195,39 +196,40 @@ class _AlertItem extends StatelessWidget {
     }
   }
 
-  Color _getLevelColor() {
+  Color _getLevelColor(ColorScheme colorScheme) {
     switch (alert.level) {
       case '红色':
-        return const Color(0xFFC62828);
+        return colorScheme.error;
       case '橙色':
-        return const Color(0xFFFF9800);
+        return Colors.orange;
       case '黄色':
-        return const Color(0xFFFDD835);
+        return Colors.yellow.shade700;
       case '蓝色':
-        return const Color(0xFF2196F3);
+        return colorScheme.primary;
       default:
-        return const Color(0xFF757575);
+        return colorScheme.outline;
     }
   }
 
-  Color _getAlertTextColor() {
-    switch (alert.level) {
+  Color _getAlertTextColor(String level, ColorScheme colorScheme) {
+    switch (level) {
       case '红色':
-        return const Color(0xFFC62828);
+        return colorScheme.onErrorContainer;
       case '橙色':
-        return const Color(0xFFE65100);
+        return colorScheme.onTertiaryContainer;
       case '黄色':
-        return const Color(0xFFF57F17);
+        return colorScheme.onSecondaryContainer;
       case '蓝色':
-        return const Color(0xFF1565C0);
+        return colorScheme.onPrimaryContainer;
       default:
-        return const Color(0xFF424242);
+        return colorScheme.onSurfaceVariant;
     }
   }
 
-  Color _getLevelTextColor() {
+  Color _getLevelTextColor(ColorScheme colorScheme) {
     switch (alert.level) {
       case '红色':
+        return colorScheme.onError;
       case '橙色':
       case '蓝色':
         return Colors.white;

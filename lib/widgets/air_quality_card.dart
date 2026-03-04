@@ -161,13 +161,14 @@ class AirQualityCard extends StatelessWidget {
 
   Color _getAqiColor(BuildContext context) {
     final aqi = int.tryParse(airQuality.aqi) ?? 0;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    if (aqi <= 50) return const Color(0xFF4CAF50);
-    if (aqi <= 100) return const Color(0xFFFFEB3B);
-    if (aqi <= 150) return const Color(0xFFFF9800);
-    if (aqi <= 200) return const Color(0xFFF44336);
-    if (aqi <= 300) return const Color(0xFF9C27B0);
-    return const Color(0xFF795548);
+    if (aqi <= 50) return Colors.green.shade400; // Good
+    if (aqi <= 100) return Colors.yellow.shade600; // Moderate
+    if (aqi <= 150) return Colors.orange.shade400; // Unhealthy for Sensitive Groups
+    if (aqi <= 200) return colorScheme.error; // Unhealthy
+    if (aqi <= 300) return Colors.purple.shade400; // Very Unhealthy
+    return Colors.brown.shade400; // Hazardous
   }
 
   String _getMainPollutant() {

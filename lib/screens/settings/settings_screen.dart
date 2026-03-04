@@ -52,7 +52,7 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsSwitch(
                 icon: Icons.wallpaper_outlined,
                 title: '动态取色',
-                subtitle: '根据壁纸自动生成主题色',
+                subtitle: '根据壁纸自动生成主题色\n（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
                 value: themeSettings.useDynamicColor,
                 onChanged: (value) {
                   ref.read(themeProvider.notifier).setUseDynamicColor(value);
@@ -61,7 +61,7 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsSwitch(
                 icon: Icons.font_download_outlined,
                 title: '内置字体 (OPPO Sans)',
-                subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题',
+                subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题（重启应用生效）',
                 value: themeSettings.useCustomFont,
                 onChanged: (value) {
                   ref.read(themeProvider.notifier).setUseCustomFont(value);
@@ -193,18 +193,6 @@ class SettingsScreen extends ConsumerWidget {
                 icon: Icons.description_outlined,
                 title: '用户协议',
                 onTap: () => _showUserAgreement(context),
-              ),
-              _SettingsTile(
-                icon: Icons.system_update_outlined,
-                title: '检查更新',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('已是最新版本'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
               ),
             ],
           ),
@@ -370,13 +358,15 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildBottomSheetHandle(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 4,
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(2),
+    return Center(
+      child: Container(
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
     );
   }
@@ -908,113 +898,54 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
-    showAboutDialog(
+    showModalBottomSheet(
       context: context,
-      applicationName: '轻氧天气',
-      applicationVersion: '2.6',
-      applicationIcon: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.asset('assets/icons/app_icon.png', width: 64, height: 64),
-      ),
-      children: [
-        const Text('一款简洁美观的天气应用'),
-        const SizedBox(height: 8),
-        const Text('使用 Material You Design 设计语言'),
-        const SizedBox(height: 8),
-        const Text('数据来源：和风天气、彩云天气'),
-        const SizedBox(height: 16),
-        Builder(
-          builder: (context) => InkWell(
-            onTap: () => launchUrl(
-              Uri.parse('https://github.com/EchoRan/PureWeather'),
-              mode: LaunchMode.externalApplication,
-            ),
-            child: Text(
-              'https://github.com/EchoRan/PureWeather',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      ],
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _AboutBottomSheet(),
     );
   }
 
   void _showPrivacyPolicy(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('隐私政策'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('生效日期：2026年3月4日'),
-                const SizedBox(height: 16),
-                const Text('轻氧天气（以下简称“我们”）非常重视您的隐私。本协议阐述了我们如何处理您的个人信息。'),
-                const SizedBox(height: 12),
-                _buildLegaleseSection('1. 信息收集', '我们仅在您使用应用期间收集必要的信息，包括：\n• 位置信息：仅用于获取您当前位置的天气预报。您可以随时在系统中关闭该权限。'),
-                _buildLegaleseSection('2. 信息使用', '收集的信息仅用于向您提供准确的天气预报和相关推送服务。我们不会将您的个人信息出售给第三方。'),
-                _buildLegaleseSection('3. 数据存储', '您的位置偏好设置存储在设备本地（SharedPreferences），除非您手动清理应用数据，否则信息将保留在您的设备上。'),
-                _buildLegaleseSection('4. 第三方服务', '本应用使用和风天气（QWeather）及彩云天气提供的天气接口，您的位置坐标（经纬度）将发送至其服务器以换取天气数据。'),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('我知道了')),
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _ContentBottomSheet(
+        title: '隐私政策',
+        content: [
+          '生效日期：2026年3月4日',
+          '轻氧天气（以下简称“我们”）非常重视您的隐私。本协议阐述了我们如何处理您的个人信息。',
+          ('1. 信息收集', '我们仅在您使用应用期间收集必要的信息，包括：\n• 位置信息：仅用于获取您当前位置的天气预报。您可以随时在系统中关闭该权限。'),
+          ('2. 信息使用', '收集的信息仅用于向您提供准确的天气预报和相关推送服务。我们不会将您的个人信息出售给第三方。'),
+          ('3. 数据存储', '您的位置偏好设置存储在设备本地（SharedPreferences），除非您手动清理应用数据，否则信息将保留在您的设备上。'),
+          ('4. 第三方服务', '本应用使用和风天气（QWeather）及彩云天气提供的天气接口，您的位置坐标（经纬度）将发送至其服务器以换取天气数据。'),
         ],
       ),
     );
   }
 
   void _showUserAgreement(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('用户协议'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('欢迎使用轻氧天气！请在使用前阅读以下条款。'),
-                const SizedBox(height: 16),
-                _buildLegaleseSection('1. 服务内容', '轻氧天气为您提供天气查询、极端天气预警及定时播报等非商业服务。'),
-                _buildLegaleseSection('2. 使用规范', '您不得将本应用用于任何非法目的，或以任何方式干扰应用的正常运行。'),
-                _buildLegaleseSection('3. 免责声明', '天气数据由第三方提供，受气象、地理、网络等多种因素影响，数据的准时性、准确性可能存在偏差。本应用不承担因天气数据错误导致的任何直接或间接损失。'),
-                _buildLegaleseSection('4. 协议变更', '我们保留随时修改本协议的权利，修改后的协议将在应用内公布。'),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('我同意')),
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _ContentBottomSheet(
+        title: '用户协议',
+        content: [
+          '欢迎使用轻氧天气！请在使用前阅读以下条款。',
+          ('1. 服务内容', '轻氧天气为您提供天气查询、极端天气预警及定时播报等非商业服务。'),
+          ('2. 使用规范', '您不得将本应用用于任何非法目的，或以任何方式干扰应用的正常运行。'),
+          ('3. 免责声明', '天气数据由第三方提供，受气象、地理、网络等多种因素影响，数据的准时性、准确性可能存在偏差。本应用不承担因天气数据错误导致的任何直接或间接损失。'),
+          ('4. 协议变更', '我们保留随时修改本协议的权利，修改后的协议将在应用内公布。'),
         ],
       ),
     );
   }
 
-  Widget _buildLegaleseSection(String title, String content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(content, style: const TextStyle(fontSize: 14)),
-      ],
-    );
-  }
 }
 
 class _SettingsSection extends StatelessWidget {
@@ -1070,7 +1001,11 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(margin: EdgeInsets.zero, child: child);
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
   }
 }
 
@@ -1161,40 +1096,51 @@ class _SettingsSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+              ),
+            ],
           ),
-          Switch(value: value, onChanged: onChanged),
-        ],
+        ),
       ),
     );
   }
@@ -1258,61 +1204,66 @@ class _SelectionBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return DraggableScrollableSheet(
-      initialChildSize: 0.45,
+      initialChildSize: 0.5,
       minChildSize: 0.3,
-      maxChildSize: 0.6,
+      maxChildSize: 0.7,
       expand: false,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: colorScheme.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              _buildBottomSheetHandle(context),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                 child: Text(
                   title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Expanded(
+              Flexible(
                 child: ListView.builder(
+                  shrinkWrap: true,
                   controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items.elementAt(index);
                     return _SelectionTile(item: item).animate().fadeIn(
-                      delay: Duration(milliseconds: index * 100),
+                      delay: Duration(milliseconds: index * 50),
+                      duration: 200.ms,
                     );
                   },
                 ),
               ),
-              const SizedBox(height: 16),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBottomSheetHandle(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
     );
   }
 }
@@ -1326,43 +1277,26 @@ class _SelectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: item.isSelected
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: item.isSelected
-            ? Border.all(color: colorScheme.primary, width: 2)
-            : null,
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
       child: Material(
-        color: Colors.transparent,
+        color: item.isSelected
+            ? colorScheme.secondaryContainer
+            : colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: item.onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: item.isSelected
-                        ? colorScheme.primary.withValues(alpha: 0.2)
-                        : colorScheme.surfaceContainerHighest.withValues(
-                            alpha: 0.5,
-                          ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    item.icon,
-                    size: 22,
-                    color: item.isSelected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
-                  ),
+                Icon(
+                  item.icon,
+                  size: 24,
+                  color: item.isSelected
+                      ? colorScheme.onSecondaryContainer
+                      : colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1372,30 +1306,323 @@ class _SelectionTile extends StatelessWidget {
                       Text(
                         item.title,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: item.isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
+                          fontWeight:
+                              item.isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: item.isSelected
-                              ? colorScheme.onPrimaryContainer
-                              : null,
+                              ? colorScheme.onSecondaryContainer
+                              : colorScheme.onSurface,
                         ),
                       ),
                       if (item.subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           item.subtitle!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: item.isSelected
+                                ? colorScheme.onSecondaryContainer
+                                    .withValues(alpha: 0.7)
+                                : colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
                 if (item.isSelected)
-                  Icon(Icons.check_circle, color: colorScheme.primary),
+                  Icon(
+                    Icons.check_circle,
+                    color: colorScheme.onSecondaryContainer,
+                  ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ContentBottomSheet extends StatelessWidget {
+  final String title;
+  final List<dynamic> content;
+
+  const _ContentBottomSheet({required this.title, required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              _buildBottomSheetHandle(context),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  itemCount: content.length,
+                  itemBuilder: (context, index) {
+                    final item = content[index];
+                    if (item is String) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          item,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            height: 1.5,
+                          ),
+                        ),
+                      );
+                    } else if (item is (String, String)) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.$1,
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.$2,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('我知道了'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomSheetHandle(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+}
+class _AboutBottomSheet extends StatelessWidget {
+  const _AboutBottomSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.8,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              _buildBottomSheetHandle(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/icons/app_icon.png',
+                          width: 80,
+                          height: 80,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '轻氧天气',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      Text(
+                        '版本 2.6.0',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildAboutItem(
+                        context,
+                        Icons.info_outline,
+                        '应用简介',
+                        '一款简洁美观的天气应用，采用 Material You 设计语言，致力于提供极致的视觉体验。',
+                      ),
+                      _buildAboutItem(
+                        context,
+                        Icons.source_outlined,
+                        '数据来源',
+                        '和风天气、彩云天气',
+                      ),
+                      _buildAboutItem(
+                        context,
+                        Icons.code_outlined,
+                        '开源地址',
+                        'https://github.com/EchoRan/PureWeather',
+                        isLink: true,
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('关闭'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAboutItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String content, {
+    bool isLink = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: colorScheme.primary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                if (isLink)
+                  InkWell(
+                    onTap: () => launchUrl(
+                      Uri.parse(content),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Text(
+                      content,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.primary,
+                            decoration: TextDecoration.underline,
+                          ),
+                    ),
+                  )
+                else
+                  Text(
+                    content,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          height: 1.5,
+                        ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomSheetHandle(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          borderRadius: BorderRadius.circular(2),
         ),
       ),
     );
