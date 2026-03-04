@@ -356,13 +356,13 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
 
   Widget _buildContent(WeatherState state) {
     final weather = state.weatherData;
+    if (weather == null) return const SizedBox.shrink();
 
-    if (weather == null) {
-      return const SizedBox.shrink();
-    }
+    final settings = ref.watch(settingsProvider);
+    final order = settings.weatherCardOrder;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -374,38 +374,58 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             _buildRainPrediction(state.minuteRain!),
             const SizedBox(height: 6),
           ],
-          HourlyForecast(
-            hourly: weather.hourly,
-            sunrise: weather.daily.isNotEmpty
-                ? weather.daily.first.sunrise
-                : null,
-            sunset: weather.daily.isNotEmpty
-                ? weather.daily.first.sunset
-                : null,
-            temperatureUnit: ref.watch(settingsProvider).temperatureUnit,
-          ),
-          const SizedBox(height: 6),
-          DailyForecast(
-            daily: weather.daily,
-            currentWeather: weather.current,
-            sunrise: weather.daily.isNotEmpty
-                ? weather.daily.first.sunrise
-                : null,
-            sunset: weather.daily.isNotEmpty
-                ? weather.daily.first.sunset
-                : null,
-            temperatureUnit: ref.watch(settingsProvider).temperatureUnit,
-          ),
-          const SizedBox(height: 6),
-          if (state.airQuality != null) ...[
-            AirQualityCard(airQuality: state.airQuality!),
-            const SizedBox(height: 6),
-          ],
-          _buildWeatherDetails(
-            weather.current,
-            weather.daily.isNotEmpty ? weather.daily.first : null,
-          ),
-          const SizedBox(height: 6),
+          ...order.map((key) {
+            Widget? card;
+            switch (key) {
+              case 'hourly':
+                card = HourlyForecast(
+                  hourly: weather.hourly,
+                  sunrise:
+                      weather.daily.isNotEmpty
+                          ? weather.daily.first.sunrise
+                          : null,
+                  sunset:
+                      weather.daily.isNotEmpty
+                          ? weather.daily.first.sunset
+                          : null,
+                  temperatureUnit: settings.temperatureUnit,
+                );
+                break;
+              case 'daily':
+                card = DailyForecast(
+                  daily: weather.daily,
+                  currentWeather: weather.current,
+                  sunrise:
+                      weather.daily.isNotEmpty
+                          ? weather.daily.first.sunrise
+                          : null,
+                  sunset:
+                      weather.daily.isNotEmpty
+                          ? weather.daily.first.sunset
+                          : null,
+                  temperatureUnit: settings.temperatureUnit,
+                );
+                break;
+              case 'airQuality':
+                if (state.airQuality != null) {
+                  card = AirQualityCard(airQuality: state.airQuality!);
+                }
+                break;
+              case 'details':
+                card = _buildWeatherDetails(
+                  weather.current,
+                  weather.daily.isNotEmpty ? weather.daily.first : null,
+                );
+                break;
+            }
+
+            if (card == null) return const SizedBox.shrink();
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: card,
+            );
+          }),
         ],
       ),
     );

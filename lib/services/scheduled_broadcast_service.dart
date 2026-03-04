@@ -16,8 +16,7 @@ class ScheduledBroadcastService {
   ScheduledBroadcastService._internal();
 
   final QWeatherService _weatherService = QWeatherService();
-  final FlutterLocalNotificationsPlugin _notifications =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin get _notifications => notificationServiceProvider.notifications;
 
   static const int _morningNotificationId = 10001;
   static const int _eveningNotificationId = 10002;
@@ -26,9 +25,9 @@ class ScheduledBroadcastService {
   static const String _channelDescription = '定时推送天气信息';
 
   bool _isInitialized = false;
-
   Future<void> initialize() async {
     if (_isInitialized) return;
+    await notificationServiceProvider.initialize();
 
     try {
       tz_data.initializeTimeZones();
@@ -107,6 +106,8 @@ class ScheduledBroadcastService {
       settings.morningTime.minute,
     );
 
+    if (scheduledDate == null) return;
+
     debugPrint(
       '[ScheduledBroadcast] Scheduling morning broadcast for: $scheduledDate',
     );
@@ -150,6 +151,8 @@ class ScheduledBroadcastService {
       settings.eveningTime.minute,
     );
 
+    if (scheduledDate == null) return;
+
     debugPrint(
       '[ScheduledBroadcast] Scheduling evening broadcast for: $scheduledDate',
     );
@@ -183,20 +186,25 @@ class ScheduledBroadcastService {
     );
   }
 
-  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+  tz.TZDateTime? _nextInstanceOfTime(int hour, int minute) {
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+      return scheduledDate;
+    } catch (e) {
+      debugPrint('[ScheduledBroadcast] Error calculating next instance: $e');
+      return null;
     }
-    return scheduledDate;
   }
 
   Future<NotificationDetails> _buildNotificationDetails() async {

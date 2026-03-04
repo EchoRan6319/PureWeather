@@ -11,6 +11,7 @@ class AppSettings {
   final String temperatureUnit;
   final bool showFeelsLike;
   final LocationAccuracyLevel locationAccuracyLevel;
+  final List<String> weatherCardOrder;
 
   const AppSettings({
     this.predictiveBackEnabled = false,
@@ -20,6 +21,12 @@ class AppSettings {
     this.temperatureUnit = 'celsius',
     this.showFeelsLike = true,
     this.locationAccuracyLevel = LocationAccuracyLevel.district,
+    this.weatherCardOrder = const [
+      'hourly',
+      'daily',
+      'airQuality',
+      'details',
+    ],
   });
 
   AppSettings copyWith({
@@ -30,6 +37,7 @@ class AppSettings {
     String? temperatureUnit,
     bool? showFeelsLike,
     LocationAccuracyLevel? locationAccuracyLevel,
+    List<String>? weatherCardOrder,
   }) {
     return AppSettings(
       predictiveBackEnabled:
@@ -41,6 +49,7 @@ class AppSettings {
       showFeelsLike: showFeelsLike ?? this.showFeelsLike,
       locationAccuracyLevel:
           locationAccuracyLevel ?? this.locationAccuracyLevel,
+      weatherCardOrder: weatherCardOrder ?? this.weatherCardOrder,
     );
   }
 }
@@ -53,6 +62,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const String _keyTemperatureUnit = 'temperature_unit';
   static const String _keyShowFeelsLike = 'show_feels_like';
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
+  static const String _keyWeatherCardOrder = 'weather_card_order';
 
   SettingsNotifier() : super(const AppSettings()) {
     _loadSettings();
@@ -67,6 +77,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       accuracyLevel = LocationAccuracyLevel.street;
     }
 
+    final savedOrder = prefs.getStringList(_keyWeatherCardOrder);
+
     state = AppSettings(
       predictiveBackEnabled: prefs.getBool(_keyPredictiveBack) ?? false,
       notificationsEnabled: prefs.getBool(_keyNotifications) ?? true,
@@ -75,6 +87,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       temperatureUnit: prefs.getString(_keyTemperatureUnit) ?? 'celsius',
       showFeelsLike: prefs.getBool(_keyShowFeelsLike) ?? true,
       locationAccuracyLevel: accuracyLevel,
+      weatherCardOrder:
+          savedOrder ?? const ['hourly', 'daily', 'airQuality', 'details'],
     );
   }
 
@@ -121,6 +135,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       value == LocationAccuracyLevel.street ? 'street' : 'district',
     );
     state = state.copyWith(locationAccuracyLevel: value);
+  }
+
+  Future<void> setWeatherCardOrder(List<String> value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_keyWeatherCardOrder, value);
+    state = state.copyWith(weatherCardOrder: value);
   }
 }
 

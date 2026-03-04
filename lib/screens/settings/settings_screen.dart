@@ -11,6 +11,7 @@ import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/notification_service.dart';
 import 'scheduled_broadcast_screen.dart';
+import 'card_order_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -124,6 +125,12 @@ class SettingsScreen extends ConsumerWidget {
                     : '区县级别',
                 onTap: () =>
                     _showLocationAccuracyDialog(context, ref, appSettings),
+              ),
+              _SettingsTile(
+                icon: Icons.sort_rounded,
+                title: '天气卡片排序',
+                subtitle: '自定义天气详情页卡片显示顺序',
+                onTap: () => CardOrderScreen.show(context),
               ),
             ],
           ),

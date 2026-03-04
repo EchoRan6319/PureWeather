@@ -8,7 +8,7 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
 
   static const String _channelId = 'weather_alerts';
@@ -34,7 +34,7 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _notifications.initialize(
+    await notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
@@ -56,7 +56,7 @@ class NotificationService {
       final result = await Permission.notification.request();
       return result.isGranted;
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final result = await _notifications
+      final result = await notifications
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
             alert: true,
@@ -73,7 +73,7 @@ class NotificationService {
       final status = await Permission.notification.status;
       return status.isGranted;
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final result = await _notifications
+      final result = await notifications
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.checkPermissions();
       return result?.isEnabled ?? false;
@@ -140,7 +140,7 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _notifications.show(
+    await notifications.show(
       id,
       title,
       body,
@@ -166,16 +166,16 @@ class NotificationService {
   }
 
   Future<void> cancelNotification(int id) async {
-    await _notifications.cancel(id);
+    await notifications.cancel(id);
   }
 
   Future<void> cancelAllNotifications() async {
-    await _notifications.cancelAll();
+    await notifications.cancelAll();
   }
 
   Future<void> createNotificationChannel() async {
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+      final androidPlugin = notifications.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
       
       await androidPlugin?.createNotificationChannel(

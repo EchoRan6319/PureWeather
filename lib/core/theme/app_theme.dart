@@ -141,12 +141,14 @@ class AppTheme {
               color: colorScheme.onSurface,
               fontWeight: FontWeight.w500,
               fontSize: 12,
+              fontFamily: fontFamily,
             );
           }
           return TextStyle(
             color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w400,
             fontSize: 12,
+            fontFamily: fontFamily,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -159,7 +161,7 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: colorScheme.surfaceContainerHighest,
         selectedColor: colorScheme.secondaryContainer,
-        labelStyle: TextStyle(color: colorScheme.onSurface),
+        labelStyle: TextStyle(color: colorScheme.onSurface, fontFamily: fontFamily),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -227,7 +229,7 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colorScheme.inverseSurface,
-        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
+        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface, fontFamily: fontFamily),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
