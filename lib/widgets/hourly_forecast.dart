@@ -3,12 +3,25 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../models/weather_models.dart';
 import '../core/constants/app_constants.dart';
 
+/// 24小时天气预报组件
+/// 
+/// 显示未来24小时的天气预报，包括时间、天气图标、温度和降水概率
 class HourlyForecast extends StatelessWidget {
+  /// 小时天气预报数据
   final List<HourlyWeather> hourly;
+  /// 日出时间
   final String? sunrise;
+  /// 日落时间
   final String? sunset;
+  /// 温度单位
   final String temperatureUnit;
 
+  /// 构造函数
+  /// 
+  /// [hourly]: 小时天气预报数据
+  /// [sunrise]: 日出时间
+  /// [sunset]: 日落时间
+  /// [temperatureUnit]: 温度单位，默认摄氏度
   const HourlyForecast({
     super.key,
     required this.hourly,
@@ -22,6 +35,7 @@ class HourlyForecast extends StatelessWidget {
     if (hourly.isEmpty) return const SizedBox.shrink();
 
     final now = DateTime.now();
+    // 过滤出未来24小时的数据
     final filteredHourly = _filterHourlyData(hourly, now);
 
     if (filteredHourly.isEmpty) return const SizedBox.shrink();
@@ -41,6 +55,9 @@ class HourlyForecast extends StatelessWidget {
     );
   }
 
+  /// 构建头部
+  /// 
+  /// [context]: 上下文
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
@@ -60,11 +77,17 @@ class HourlyForecast extends StatelessWidget {
     );
   }
 
+  /// 构建小时预报列表
+  /// 
+  /// [context]: 上下文
+  /// [hourly]: 小时天气预报数据
+  /// [now]: 当前时间
   Widget _buildHourlyList(
     BuildContext context,
     List<HourlyWeather> hourly,
     DateTime now,
   ) {
+    // 检查是否有降水数据
     final hasAnyPrecipitation = hourly.any(
       (h) => h.pop != '0' && h.pop.isNotEmpty,
     );
@@ -74,11 +97,13 @@ class HourlyForecast extends StatelessWidget {
         final screenWidth = constraints.maxWidth;
         const targetVisibleItems = 5;
         const itemGap = 4.0;
+        // 计算每个小时项的宽度
         final itemWidth =
             (screenWidth - (itemGap * (targetVisibleItems - 1))) /
             targetVisibleItems;
 
         return SizedBox(
+          // 根据是否有降水数据调整高度
           height: hasAnyPrecipitation ? 120 : 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -109,10 +134,17 @@ class HourlyForecast extends StatelessWidget {
     );
   }
 
+  /// 过滤小时天气预报数据
+  /// 
+  /// [hourly]: 原始小时天气预报数据
+  /// [now]: 当前时间
+  /// 
+  /// 返回未来24小时的天气预报数据
   List<HourlyWeather> _filterHourlyData(
     List<HourlyWeather> hourly,
     DateTime now,
   ) {
+    // 计算开始时间（下一小时）和结束时间（24小时后）
     final nextHour = DateTime(
       now.year,
       now.month,
@@ -135,6 +167,7 @@ class HourlyForecast extends StatelessWidget {
         localHourTime.hour,
       );
 
+      // 筛选出在开始时间和结束时间之间的数据
       if ((compareTime.isAtSameMomentAs(nextHour) ||
               compareTime.isAfter(nextHour)) &&
           compareTime.isBefore(endHour)) {
@@ -142,6 +175,7 @@ class HourlyForecast extends StatelessWidget {
       }
     }
 
+    // 按时间排序
     result.sort((a, b) {
       final timeA = DateTime.tryParse(a.fxTime) ?? DateTime(2000);
       final timeB = DateTime.tryParse(b.fxTime) ?? DateTime(2000);
@@ -152,14 +186,31 @@ class HourlyForecast extends StatelessWidget {
   }
 }
 
+/// 小时天气预报项组件
+/// 
+/// 显示单个小时的天气信息
 class _HourlyItem extends StatelessWidget {
+  /// 小时天气数据
   final HourlyWeather weather;
+  /// 当前时间
   final DateTime now;
+  /// 日出时间
   final String? sunrise;
+  /// 日落时间
   final String? sunset;
+  /// 是否显示降水概率
   final bool showPrecipitation;
+  /// 温度单位
   final String temperatureUnit;
 
+  /// 构造函数
+  /// 
+  /// [weather]: 小时天气数据
+  /// [now]: 当前时间
+  /// [sunrise]: 日出时间
+  /// [sunset]: 日落时间
+  /// [showPrecipitation]: 是否显示降水概率
+  /// [temperatureUnit]: 温度单位
   const _HourlyItem({
     required this.weather,
     required this.now,
@@ -169,6 +220,9 @@ class _HourlyItem extends StatelessWidget {
     this.temperatureUnit = 'celsius',
   });
 
+  /// 判断是否为夜间
+  /// 
+  /// [time]: 时间
   bool _isNightTime(DateTime time) {
     if (sunrise != null &&
         sunset != null &&
@@ -192,6 +246,7 @@ class _HourlyItem extends StatelessWidget {
       }
     }
 
+    // 默认规则：18点后或6点前为夜间
     return time.hour >= 18 || time.hour < 6;
   }
 
@@ -215,6 +270,10 @@ class _HourlyItem extends StatelessWidget {
     );
   }
 
+  /// 构建时间文本
+  /// 
+  /// [context]: 上下文
+  /// [time]: 时间
   Widget _buildTimeText(BuildContext context, DateTime? time) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -239,6 +298,11 @@ class _HourlyItem extends StatelessWidget {
     );
   }
 
+  /// 构建天气图标
+  /// 
+  /// [context]: 上下文
+  /// [iconCode]: 图标代码
+  /// [isNight]: 是否为夜间
   Widget _buildWeatherIcon(BuildContext context, int iconCode, bool isNight) {
     return Icon(
       WeatherCode.getWeatherIcon(iconCode, isNight: isNight),
@@ -247,6 +311,9 @@ class _HourlyItem extends StatelessWidget {
     );
   }
 
+  /// 构建温度文本
+  /// 
+  /// [context]: 上下文
   Widget _buildTempText(BuildContext context) {
     final convertedTemp = WeatherCode.convertTemperature(
       weather.temp,
@@ -261,6 +328,9 @@ class _HourlyItem extends StatelessWidget {
     );
   }
 
+  /// 构建降水概率
+  /// 
+  /// [context]: 上下文
   Widget _buildPrecipitation(BuildContext context) {
     return Row(
           mainAxisSize: MainAxisSize.min,

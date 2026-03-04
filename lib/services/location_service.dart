@@ -5,10 +5,19 @@ import '../core/constants/api_config.dart';
 import '../models/weather_models.dart';
 import '../providers/settings_provider.dart';
 
+/// 位置服务类
+/// 
+/// 负责处理位置相关的功能，包括权限检查、获取当前位置、根据坐标获取位置信息等
 class LocationService {
+  /// Dio实例，用于网络请求
   final Dio _dio;
+  /// 高德地图API密钥
   final String _apiKey;
 
+  /// 构造函数
+  /// 
+  /// [dio]: 自定义Dio实例
+  /// [apiKey]: 自定义API密钥
   LocationService({Dio? dio, String? apiKey})
     : _dio =
           dio ??
@@ -20,6 +29,9 @@ class LocationService {
           ),
       _apiKey = apiKey ?? ApiConfig.amapWebKey;
 
+  /// 检查并请求位置权限
+  /// 
+  /// 返回是否获取到权限
   Future<bool> checkAndRequestPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -42,6 +54,9 @@ class LocationService {
     return true;
   }
 
+  /// 获取当前位置
+  /// 
+  /// 返回当前位置信息，失败返回null
   Future<Position?> getCurrentPosition() async {
     try {
       final hasPermission = await checkAndRequestPermission();
@@ -60,6 +75,11 @@ class LocationService {
     }
   }
 
+  /// 检查字段是否有效
+  /// 
+  /// [value]: 要检查的字段值
+  /// 
+  /// 返回字段是否有效
   bool _isValidField(String? value) {
     if (value == null) return false;
     if (value.isEmpty) return false;
@@ -67,6 +87,13 @@ class LocationService {
     return true;
   }
 
+  /// 获取位置名称
+  /// 
+  /// [addressComponent]: 地址组件
+  /// [city]: 城市名称
+  /// [accuracyLevel]: 位置精度级别
+  /// 
+  /// 返回位置名称
   String _getLocationName(
     Map<String, dynamic> addressComponent,
     String city, {
@@ -105,6 +132,13 @@ class LocationService {
     return city.isNotEmpty ? city : '当前位置';
   }
 
+  /// 根据坐标获取位置信息
+  /// 
+  /// [lat]: 纬度
+  /// [lon]: 经度
+  /// [accuracyLevel]: 位置精度级别
+  /// 
+  /// 返回位置信息
   Future<Location> getLocationFromCoords(
     double lat,
     double lon, {
@@ -184,11 +218,17 @@ class LocationService {
     }
   }
 
+  /// 搜索位置
+  /// 
+  /// [query]: 搜索关键词
+  /// 
+  /// 返回位置列表
   Future<List<Location>> searchLocations(String query) async {
     final results = <Location>[];
     final seenIds = <String>{};
 
     try {
+      // 搜索行政区划
       final districtResponse = await _dio.get(
         'https://restapi.amap.com/v3/config/district',
         queryParameters: {
@@ -254,6 +294,7 @@ class LocationService {
         }
       }
 
+      // 搜索输入提示
       final tipsResponse = await _dio.get(
         'https://restapi.amap.com/v3/assistant/inputtips',
         queryParameters: {
@@ -321,6 +362,9 @@ class LocationService {
     }
   }
 
+  /// 获取位置流
+  /// 
+  /// 返回位置变化的流
   Stream<Position> getPositionStream() {
     return Geolocator.getPositionStream(
       locationSettings: const LocationSettings(

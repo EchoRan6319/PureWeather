@@ -4,13 +4,28 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../models/weather_models.dart';
 import '../core/constants/app_constants.dart';
 
+/// 7天天气预报组件
+/// 
+/// 显示未来7天的天气预报，包括日期、天气图标、天气状态和温度范围
 class DailyForecast extends StatelessWidget {
+  /// 每日天气预报数据
   final List<DailyWeather> daily;
+  /// 当前天气数据
   final CurrentWeather? currentWeather;
+  /// 日出时间
   final String? sunrise;
+  /// 日落时间
   final String? sunset;
+  /// 温度单位
   final String temperatureUnit;
 
+  /// 构造函数
+  /// 
+  /// [daily]: 每日天气预报数据
+  /// [currentWeather]: 当前天气数据
+  /// [sunrise]: 日出时间
+  /// [sunset]: 日落时间
+  /// [temperatureUnit]: 温度单位，默认摄氏度
   const DailyForecast({
     super.key,
     required this.daily,
@@ -30,6 +45,7 @@ class DailyForecast extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 头部
             Row(
               children: [
                 Icon(
@@ -47,6 +63,7 @@ class DailyForecast extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            // 每日预报列表
             ...daily.take(7).toList().asMap().entries.map((entry) {
               return _DailyItem(
                 weather: entry.value,
@@ -64,14 +81,31 @@ class DailyForecast extends StatelessWidget {
   }
 }
 
+/// 每日天气预报项组件
+/// 
+/// 显示单个日期的天气信息
 class _DailyItem extends StatelessWidget {
+  /// 每日天气数据
   final DailyWeather weather;
+  /// 是否为今天
   final bool isToday;
+  /// 当前天气数据
   final CurrentWeather? currentWeather;
+  /// 日出时间
   final String? sunrise;
+  /// 日落时间
   final String? sunset;
+  /// 温度单位
   final String temperatureUnit;
 
+  /// 构造函数
+  /// 
+  /// [weather]: 每日天气数据
+  /// [isToday]: 是否为今天
+  /// [currentWeather]: 当前天气数据
+  /// [sunrise]: 日出时间
+  /// [sunset]: 日落时间
+  /// [temperatureUnit]: 温度单位
   const _DailyItem({
     required this.weather,
     this.isToday = false,
@@ -81,6 +115,7 @@ class _DailyItem extends StatelessWidget {
     this.temperatureUnit = 'celsius',
   });
 
+  /// 判断是否为夜间
   bool _isNightTime() {
     if (sunrise == null ||
         sunset == null ||
@@ -119,6 +154,7 @@ class _DailyItem extends StatelessWidget {
     int icon;
     String text;
 
+    // 今天显示当前天气，其他天显示白天天气
     if (isToday && currentWeather != null) {
       icon = int.tryParse(currentWeather!.icon) ?? 100;
       text = currentWeather!.text;
@@ -136,6 +172,7 @@ class _DailyItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
+          // 日期和星期
           SizedBox(
             width: 60,
             child: Column(
@@ -156,6 +193,7 @@ class _DailyItem extends StatelessWidget {
               ],
             ),
           ),
+          // 天气图标和状态
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -176,6 +214,7 @@ class _DailyItem extends StatelessWidget {
               ],
             ),
           ),
+          // 温度范围
           SizedBox(
             width: 70,
             child: Row(
@@ -202,6 +241,9 @@ class _DailyItem extends StatelessWidget {
     );
   }
 
+  /// 获取星期几
+  /// 
+  /// [weekday]: 星期几的数字表示（1-7）
   String _getWeekday(int weekday) {
     const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
     return '周${weekdays[weekday - 1]}';

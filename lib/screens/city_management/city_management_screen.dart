@@ -5,6 +5,7 @@ import '../../models/weather_models.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/weather_provider.dart';
 
+/// 城市管理屏幕
 class CityManagementScreen extends ConsumerStatefulWidget {
   const CityManagementScreen({super.key});
 
@@ -12,9 +13,15 @@ class CityManagementScreen extends ConsumerStatefulWidget {
   ConsumerState<CityManagementScreen> createState() => _CityManagementScreenState();
 }
 
+/// 城市管理屏幕状态
 class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
+  /// 搜索输入控制器
   final _searchController = TextEditingController();
+  
+  /// 搜索结果
   List<Location> _searchResults = [];
+  
+  /// 是否正在搜索
   bool _isSearching = false;
 
   @override
@@ -23,6 +30,9 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     super.dispose();
   }
 
+  /// 搜索城市
+  /// 
+  /// [query] 搜索关键词
   Future<void> _searchCities(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -49,6 +59,10 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     }
   }
 
+  /// 添加城市
+  /// 
+  /// [location] 城市位置信息
+  /// [navigateBack] 是否返回上一页
   Future<void> _addCity(Location location, {bool navigateBack = true}) async {
     await ref.read(cityManagerProvider.notifier).addCityAndSetDefault(location);
     
@@ -73,6 +87,9 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     }
   }
 
+  /// 删除城市
+  /// 
+  /// [city] 要删除的城市
   Future<void> _removeCity(Location city) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -97,6 +114,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     }
   }
 
+  /// 获取当前位置
   Future<void> _getCurrentLocation() async {
     try {
       final locationService = ref.read(locationServiceProvider);
@@ -193,6 +211,12 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     );
   }
 
+  /// 构建副标题
+  /// 
+  /// [adm1] 行政区域一级
+  /// [adm2] 行政区域二级
+  /// 
+  /// 返回副标题字符串
   String _buildSubtitle(String adm1, String adm2) {
     final parts = <String>[];
     if (adm1.isNotEmpty) parts.add(adm1);
@@ -200,6 +224,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     return parts.isEmpty ? '' : parts.join(' ');
   }
 
+  /// 构建搜索结果列表
   Widget _buildSearchResults() {
     return ListView.builder(
       itemCount: _searchResults.length,
@@ -219,6 +244,9 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     );
   }
 
+  /// 构建城市列表
+  /// 
+  /// [cities] 城市列表
   Widget _buildCityList(List<Location> cities) {
     if (cities.isEmpty) {
       return Center(
@@ -275,12 +303,26 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
   }
 }
 
+/// 城市列表项组件
 class _CityListItem extends ConsumerWidget {
+  /// 城市信息
   final Location city;
+  
+  /// 点击回调
   final VoidCallback onTap;
+  
+  /// 删除回调
   final VoidCallback onDelete;
+  
+  /// 索引
   final int index;
 
+  /// 创建城市列表项实例
+  /// 
+  /// [city] 城市信息
+  /// [onTap] 点击回调
+  /// [onDelete] 删除回调
+  /// [index] 索引
   const _CityListItem({
     super.key,
     required this.city,
@@ -289,6 +331,12 @@ class _CityListItem extends ConsumerWidget {
     required this.index,
   });
 
+  /// 构建副标题
+  /// 
+  /// [adm1] 行政区域一级
+  /// [adm2] 行政区域二级
+  /// 
+  /// 返回副标题字符串
   static String _buildSubtitle(String adm1, String adm2) {
     final parts = <String>[];
     if (adm1.isNotEmpty) parts.add(adm1);

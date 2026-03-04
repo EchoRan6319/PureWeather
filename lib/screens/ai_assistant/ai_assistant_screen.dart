@@ -6,6 +6,7 @@ import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../models/weather_models.dart';
 
+/// AI天气助手屏幕
 class AIAssistantScreen extends ConsumerStatefulWidget {
   const AIAssistantScreen({super.key});
 
@@ -13,11 +14,21 @@ class AIAssistantScreen extends ConsumerStatefulWidget {
   ConsumerState<AIAssistantScreen> createState() => _AIAssistantScreenState();
 }
 
+/// AI天气助手屏幕状态
 class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
+  /// 消息输入控制器
   final _messageController = TextEditingController();
+  
+  /// 滚动控制器
   final _scrollController = ScrollController();
+  
+  /// 焦点节点
   final _focusNode = FocusNode();
+  
+  /// 是否正在输入
   bool _isTyping = false;
+  
+  /// 当前响应内容
   String _currentResponse = '';
 
   @override
@@ -28,6 +39,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     super.dispose();
   }
 
+  /// 发送消息
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty || _isTyping) return;
@@ -80,6 +92,12 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     }
   }
 
+  /// 构建天气上下文信息
+  /// 
+  /// [weatherState] 天气状态
+  /// [location] 位置信息
+  /// 
+  /// 返回天气上下文字符串
   String _buildWeatherContext(WeatherState weatherState, Location? location) {
     final weather = weatherState.weatherData;
     if (weather == null || location == null) return '';
@@ -97,6 +115,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 ''';
   }
 
+  /// 滚动到底部
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -147,6 +166,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     );
   }
 
+  /// 构建空状态
   Widget _buildEmptyState() {
     return SingleChildScrollView(
       child: Padding(
@@ -197,6 +217,11 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     );
   }
 
+  /// 构建快速操作按钮
+  /// 
+  /// [text] 按钮文本
+  /// 
+  /// 返回ActionChip实例
   Widget _buildQuickAction(String text) {
     return ActionChip(
       label: Text(text),
@@ -212,6 +237,11 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     );
   }
 
+  /// 构建聊天列表
+  /// 
+  /// [session] 聊天会话
+  /// 
+  /// 返回ListView.builder实例
   Widget _buildChatList(ChatSession session) {
     return ListView.builder(
       controller: _scrollController,
@@ -232,6 +262,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     );
   }
 
+  /// 构建输入指示器
   Widget _buildTypingIndicator() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -262,6 +293,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     ).animate().fadeIn(duration: 200.ms);
   }
 
+  /// 构建输入区域
   Widget _buildInputArea() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -327,10 +359,18 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   }
 }
 
+/// 聊天气泡组件
 class _ChatBubble extends StatelessWidget {
+  /// 消息内容
   final String message;
+  
+  /// 是否是用户消息
   final bool isUser;
 
+  /// 创建聊天气泡实例
+  /// 
+  /// [message] 消息内容
+  /// [isUser] 是否是用户消息
   const _ChatBubble({required this.message, required this.isUser});
 
   @override

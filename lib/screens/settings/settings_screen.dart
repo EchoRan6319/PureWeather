@@ -53,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsSwitch(
                 icon: Icons.wallpaper_outlined,
                 title: '动态取色',
-                subtitle: '根据壁纸自动生成主题色\n（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
+                subtitle: '根据壁纸自动生成主题色（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
                 value: themeSettings.useDynamicColor,
                 onChanged: (value) {
                   ref.read(themeProvider.notifier).setUseDynamicColor(value);
@@ -62,7 +62,7 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsSwitch(
                 icon: Icons.font_download_outlined,
                 title: '内置字体 (OPPO Sans)',
-                subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题（重启应用生效）',
+                subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题',
                 value: themeSettings.useCustomFont,
                 onChanged: (value) {
                   ref.read(themeProvider.notifier).setUseCustomFont(value);

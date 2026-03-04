@@ -11,6 +11,9 @@ import '../../widgets/daily_forecast.dart';
 import '../../widgets/weather_alert_card.dart';
 import '../../widgets/air_quality_card.dart';
 
+/// 天气主页面
+/// 
+/// 显示当前天气信息、天气预报和相关数据
 class WeatherScreen extends ConsumerStatefulWidget {
   const WeatherScreen({super.key});
 
@@ -22,11 +25,13 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   @override
   void initState() {
     super.initState();
+    // 页面加载后获取天气数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadWeather();
     });
   }
 
+  /// 加载天气数据
   Future<void> _loadWeather() async {
     final defaultCity = ref.read(defaultCityProvider);
     if (defaultCity != null) {
@@ -34,10 +39,12 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     }
   }
 
+  /// 刷新天气数据
   Future<void> _onRefresh() async {
     await ref.read(weatherProvider.notifier).refresh();
   }
 
+  /// 显示城市选择器
   void _showCitySelector() {
     showModalBottomSheet(
       context: context,
@@ -60,6 +67,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     final weatherState = ref.watch(weatherProvider);
     final defaultCity = ref.watch(defaultCityProvider);
 
+    // 监听默认城市变化，自动加载新城市的天气
     ref.listen(defaultCityProvider, (previous, next) {
       if (next != null) {
         ref.read(weatherProvider.notifier).loadWeather(next);
@@ -71,6 +79,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         onRefresh: _onRefresh,
         child: CustomScrollView(
           slivers: [
+            // 可展开的AppBar，显示当前天气
             SliverAppBar(
               expandedHeight: 280,
               floating: false,
@@ -90,6 +99,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
               ),
             ),
+            // 天气详情内容
             SliverToBoxAdapter(child: _buildContent(weatherState)),
           ],
         ),
@@ -97,11 +107,17 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建当前天气显示
+  /// 
+  /// [state]: 天气状态
+  /// [location]: 位置信息
+  /// [settings]: 应用设置
   Widget _buildCurrentWeather(
     WeatherState state,
     Location? location,
     AppSettings settings,
   ) {
+    // 加载中状态
     if (state.isLoading && state.weatherData == null) {
       return Container(
         decoration: BoxDecoration(
@@ -126,6 +142,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       return _buildEmptyState();
     }
 
+    // 获取今日天气和昼夜状态
     final todayDaily = weather.daily.isNotEmpty ? weather.daily.first : null;
     final isNight = _isNightTime(
       weather.current.obsTime,
@@ -142,6 +159,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // 城市名称
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -162,6 +180,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               ],
             ),
             const SizedBox(height: 8),
+            // 当前温度
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,6 +205,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               ],
             ),
             const SizedBox(height: 8),
+            // 天气状态
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -205,6 +225,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            // 温度信息
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -240,6 +261,10 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建温度信息项
+  /// 
+  /// [label]: 标签
+  /// [value]: 值
   Widget _buildTempInfo(String label, String value) {
     return Column(
       children: [
@@ -259,6 +284,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建错误状态
+  /// 
+  /// [message]: 错误信息
   Widget _buildErrorState(String message) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -312,6 +340,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建空状态
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -343,7 +372,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              '点击底部导航栏"城市"添加',
+              '点击右上角“导航”图标添加城市',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -354,6 +383,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建天气详情内容
+  /// 
+  /// [state]: 天气状态
   Widget _buildContent(WeatherState state) {
     final weather = state.weatherData;
     if (weather == null) return const SizedBox.shrink();
@@ -366,14 +398,17 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 天气预警
           if (weather.hasAlerts) ...[
             WeatherAlertCard(alerts: weather.alerts),
             const SizedBox(height: 6),
           ],
+          // 降雨预测
           if (state.minuteRain != null && state.minuteRain!.willRain) ...[
             _buildRainPrediction(state.minuteRain!),
             const SizedBox(height: 6),
           ],
+          // 根据设置的顺序显示天气卡片
           ...order.map((key) {
             Widget? card;
             switch (key) {
@@ -431,6 +466,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建降雨预测卡片
+  /// 
+  /// [rain]: 降雨预测数据
   Widget _buildRainPrediction(CaiyunMinuteRain rain) {
     return Card(
       child: Padding(
@@ -459,6 +497,10 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建天气详情卡片
+  /// 
+  /// [current]: 当前天气
+  /// [todayDaily]: 今日天气
   Widget _buildWeatherDetails(
     CurrentWeather current,
     DailyWeather? todayDaily,
@@ -486,6 +528,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               ],
             ),
             const SizedBox(height: 10),
+            // 第一行详情
             Row(
               children: [
                 Expanded(
@@ -517,6 +560,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               ],
             ),
             const SizedBox(height: 10),
+            // 第二行详情
             Row(
               children: [
                 Expanded(
@@ -553,6 +597,12 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 构建详情项
+  /// 
+  /// [icon]: 图标
+  /// [label]: 标签
+  /// [value]: 值
+  /// [subtitle]: 副标题
   Widget _buildDetailItem(
     IconData icon,
     String label,
@@ -586,6 +636,11 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
+  /// 判断是否为夜间
+  /// 
+  /// [obsTime]: 观测时间
+  /// [sunrise]: 日出时间
+  /// [sunset]: 日落时间
   bool _isNightTime(String obsTime, String? sunrise, String? sunset) {
     try {
       final now = DateTime.parse(obsTime);
@@ -602,12 +657,17 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         }
       }
 
+      // 默认规则：6点前或18点后为夜间
       return now.hour < 6 || now.hour >= 18;
     } catch (_) {
       return false;
     }
   }
 
+  /// 解析时间字符串
+  /// 
+  /// [time]: 时间字符串 (HH:MM)
+  /// [baseDate]: 基础日期
   DateTime? _parseTime(String time, DateTime baseDate) {
     try {
       final parts = time.split(':');
@@ -627,6 +687,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 }
 
+/// 城市选择器底部弹窗
+/// 
+/// 用于搜索和选择城市
 class _CitySelectorSheet extends ConsumerStatefulWidget {
   final Function(Location, {bool isLocated}) onCitySelected;
 
@@ -647,6 +710,9 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
     super.dispose();
   }
 
+  /// 搜索城市
+  /// 
+  /// [query]: 搜索关键词
   Future<void> _searchCities(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -673,6 +739,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
     }
   }
 
+  /// 获取当前位置
   Future<void> _getCurrentLocation() async {
     try {
       final locationService = ref.read(locationServiceProvider);
@@ -724,6 +791,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
         builder: (context, scrollController) {
           return Column(
             children: [
+              // 拖拽指示器
               Container(
                 width: 40,
                 height: 4,
@@ -735,6 +803,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
+              // 搜索栏和定位按钮
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -774,6 +843,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                 ),
               ),
               const SizedBox(height: 8),
+              // 搜索结果或城市列表
               Expanded(
                 child: _isSearching
                     ? const Center(child: CircularProgressIndicator())
@@ -788,6 +858,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
     );
   }
 
+  /// 构建搜索结果列表
   Widget _buildSearchResults() {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -815,6 +886,11 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
     );
   }
 
+  /// 构建城市列表
+  /// 
+  /// [cities]: 城市列表
+  /// [defaultCity]: 默认城市
+  /// [scrollController]: 滚动控制器
   Widget _buildCityList(
     List<Location> cities,
     Location? defaultCity,
@@ -849,6 +925,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
       );
     }
 
+    // 排序城市：定位城市优先，然后按排序序号
     final sortedCities = [...cities]
       ..sort((a, b) {
         if (a.isLocated) return -1;
@@ -889,6 +966,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // 显示城市当前温度
                 weatherAsync.when(
                   data: (weather) {
                     if (weather == null) return const SizedBox();
@@ -912,6 +990,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                   ),
                   error: (error, stackTrace) => const SizedBox(),
                 ),
+                // 删除按钮
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   onPressed: () async {
@@ -919,7 +998,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                         .read(cityManagerProvider.notifier)
                         .removeCity(city.id);
 
-                    // If all cities are deleted, re-init location automatically
+                    // 如果所有城市都被删除，自动重新初始化位置
                     final cities = ref.read(cityManagerProvider);
                     if (cities.isEmpty) {
                       ref.read(locationInitProvider.notifier).initLocation(
@@ -931,6 +1010,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                 ),
               ],
             ),
+            // 点击切换默认城市
             onTap: () async {
               await ref
                   .read(cityManagerProvider.notifier)

@@ -9,6 +9,7 @@ import 'weather/weather_screen.dart';
 import 'ai_assistant/ai_assistant_screen.dart';
 import 'settings/settings_screen.dart';
 
+/// 主屏幕，应用的根页面
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
@@ -16,8 +17,12 @@ class MainScreen extends ConsumerStatefulWidget {
   ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
+/// 主屏幕状态
 class _MainScreenState extends ConsumerState<MainScreen> {
+  /// 是否已初始化
   bool _hasInitialized = false;
+  
+  /// 当前选中的导航索引
   int _currentIndex = 0;
 
   @override
@@ -28,6 +33,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     });
   }
 
+  /// 初始化应用
   Future<void> _initApp() async {
     if (_hasInitialized) return;
     _hasInitialized = true;
@@ -42,6 +48,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     await _initLocation();
   }
 
+  /// 首次运行时请求权限
   Future<void> _requestPermissionsOnFirstRun() async {
     final hasLocationPermission =
         await ref
@@ -68,6 +75,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     await notificationServiceProvider.markNotificationPermissionRequested();
   }
 
+  /// 显示权限请求对话框
+  /// 
+  /// [title] 对话框标题
+  /// [message] 对话框内容
   void _showPermissionDialog(String title, String message) {
     if (!mounted) return;
 
@@ -94,6 +105,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     );
   }
 
+  /// 初始化位置
   Future<void> _initLocation() async {
     await ref.read(locationInitProvider.notifier).requestLocationPermission();
     await ref.read(locationInitProvider.notifier).initLocation();
@@ -104,6 +116,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  /// 根据新的精度级别刷新位置
+  /// 
+  /// [accuracyLevel] 位置精度级别
   Future<void> _refreshLocationWithNewAccuracy(
     LocationAccuracyLevel accuracyLevel,
   ) async {
@@ -127,6 +142,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  /// 获取屏幕列表
+  /// 
+  /// [showAIAssistant] 是否显示AI助手
+  /// 
+  /// 返回屏幕列表
   List<Widget> _getScreens(bool showAIAssistant) {
     return [
       const WeatherScreen(),
@@ -135,6 +155,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ];
   }
 
+  /// 获取导航目标列表
+  /// 
+  /// [showAIAssistant] 是否显示AI助手
+  /// 
+  /// 返回导航目标列表
   List<NavigationDestination> _getDestinations(bool showAIAssistant) {
     return [
       const NavigationDestination(
@@ -163,6 +188,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final screens = _getScreens(showAI);
     final destinations = _getDestinations(showAI);
 
+    // 监听位置初始化状态
     ref.listen(locationInitProvider, (previous, next) {
       if (next.isInitialized) {
         final defaultCity = ref.read(defaultCityProvider);
@@ -172,34 +198,37 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       }
     });
 
+    // 监听默认城市变化
     ref.listen(defaultCityProvider, (previous, next) {
       if (next != null) {
         ref.read(weatherProvider.notifier).loadWeather(next);
       }
     });
 
+    // 监听设置变化
     ref.listen(settingsProvider, (previous, next) {
       if (previous == null) return;
 
+      // 处理位置精度变化
       if (previous.locationAccuracyLevel != next.locationAccuracyLevel) {
         _refreshLocationWithNewAccuracy(next.locationAccuracyLevel);
       }
 
-      // Handle AI Assistant toggle index shift
+      // 处理AI助手开关状态变化
       if (previous.showAIAssistant != next.showAIAssistant) {
         setState(() {
           if (next.showAIAssistant) {
-            // If AI Assistant is enabled, and we were on Settings (index 1), shift to 2
+            // 如果AI助手启用，且当前在设置页面(索引1)，则切换到索引2
             if (_currentIndex == 1) {
               _currentIndex = 2;
             }
           } else {
-            // If AI Assistant is disabled
+            // 如果AI助手禁用
             if (_currentIndex == 1) {
-              // If we were on AI Assistant, switch to Weather
+              // 如果当前在AI助手页面，切换到天气页面
               _currentIndex = 0;
             } else if (_currentIndex == 2) {
-              // If we were on Settings, shift to 1
+              // 如果当前在设置页面，切换到索引1
               _currentIndex = 1;
             }
           }

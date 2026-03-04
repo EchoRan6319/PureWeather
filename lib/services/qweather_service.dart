@@ -3,11 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/api_config.dart';
 import '../models/weather_models.dart';
 
+/// 和风天气服务类
+/// 
+/// 负责与和风天气API交互，获取天气相关数据
 class QWeatherService {
+  /// Dio实例，用于网络请求
   final Dio _dio;
+  /// API密钥
   final String _apiKey;
+  /// API基础URL
   final String _baseUrl;
 
+  /// 构造函数
+  /// 
+  /// [dio]: 自定义Dio实例
+  /// [apiKey]: 自定义API密钥
+  /// [baseUrl]: 自定义API基础URL
   QWeatherService({
     Dio? dio,
     String? apiKey,
@@ -19,6 +30,11 @@ class QWeatherService {
         _apiKey = apiKey ?? ApiConfig.qweatherApiKey,
         _baseUrl = baseUrl ?? ApiConfig.qweatherBaseUrl;
 
+  /// 根据城市名称搜索位置
+  /// 
+  /// [query]: 城市名称
+  /// 
+  /// 返回位置信息
   Future<Location> searchLocation(String query) async {
     try {
       final response = await _dio.get(
@@ -55,9 +71,14 @@ class QWeatherService {
     }
   }
 
+  /// 根据坐标搜索位置
+  /// 
+  /// [lat]: 纬度
+  /// [lon]: 经度
+  /// 
+  /// 返回位置信息
   Future<Location> searchLocationByCoords(double lat, double lon) async {
     try {
-      // print('[QWeather] GET $_baseUrl/geo/reverse?location=$lon,$lat');
       final response = await _dio.get(
         '$_baseUrl/geo/reverse',
         queryParameters: {
@@ -67,7 +88,6 @@ class QWeatherService {
       );
 
       final data = response.data;
-      // print('[QWeather] Geo reverse response: $data');
       
       if (data['code'] == '200' && data['location'] != null) {
         final locations = data['location'] as List;
@@ -95,8 +115,6 @@ class QWeatherService {
       }
       throw Exception(_getErrorMessage(errorCode));
     } on DioException catch (e) {
-      // print('[QWeather] DioException: ${e.type} - ${e.message}');
-      // print('[QWeather] Response: ${e.response?.data}');
       String errorMsg;
       switch (e.type) {
         case DioExceptionType.connectionError:
@@ -129,11 +147,15 @@ class QWeatherService {
       }
       throw Exception(errorMsg);
     } catch (e) {
-      // print('[QWeather] Unknown error: $e');
       rethrow;
     }
   }
 
+  /// 根据错误码获取错误信息
+  /// 
+  /// [code]: 错误码
+  /// 
+  /// 返回错误信息
   String _getErrorMessage(String code) {
     switch (code) {
       case '400':
@@ -155,9 +177,13 @@ class QWeatherService {
     }
   }
 
+  /// 获取当前天气
+  /// 
+  /// [locationId]: 位置ID
+  /// 
+  /// 返回当前天气信息
   Future<CurrentWeather> getCurrentWeather(String locationId) async {
     try {
-      // print('[QWeather] GET $_baseUrl/weather/now?location=$locationId');
       final response = await _dio.get(
         '$_baseUrl/weather/now',
         queryParameters: {
@@ -167,7 +193,6 @@ class QWeatherService {
       );
 
       final data = response.data;
-      // print('[QWeather] Current Weather Response: $data');
       
       if (data['code'] == '200' && data['now'] != null) {
         return CurrentWeather.fromJson(data['now']);
@@ -178,9 +203,13 @@ class QWeatherService {
     }
   }
 
+  /// 获取逐小时天气预报
+  /// 
+  /// [locationId]: 位置ID
+  /// 
+  /// 返回逐小时天气预报列表
   Future<List<HourlyWeather>> getHourlyWeather(String locationId) async {
     try {
-      // print('[QWeather] GET $_baseUrl/weather/72h?location=$locationId');
       final response = await _dio.get(
         '$_baseUrl/weather/72h',
         queryParameters: {
@@ -190,7 +219,6 @@ class QWeatherService {
       );
 
       final data = response.data;
-      // print('[QWeather] Hourly Weather Response: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}...');
       
       if (data['code'] == '200' && data['hourly'] != null) {
         return (data['hourly'] as List)
@@ -203,9 +231,13 @@ class QWeatherService {
     }
   }
 
+  /// 获取每日天气预报
+  /// 
+  /// [locationId]: 位置ID
+  /// 
+  /// 返回每日天气预报列表
   Future<List<DailyWeather>> getDailyWeather(String locationId) async {
     try {
-      // print('[QWeather] GET $_baseUrl/weather/7d?location=$locationId');
       final response = await _dio.get(
         '$_baseUrl/weather/7d',
         queryParameters: {
@@ -215,13 +247,9 @@ class QWeatherService {
       );
 
       final data = response.data;
-      // print('[QWeather] Daily Weather Response: $data');
       
       if (data['code'] == '200' && data['daily'] != null) {
         final dailyList = data['daily'] as List;
-        for (var _ in dailyList) {
-          // print('[QWeather] Daily: ${day['fxDate']} - textDay: ${day['textDay']}, textNight: ${day['textNight']}, tempMax: ${day['tempMax']}, tempMin: ${day['tempMin']}');
-        }
         return dailyList.map((e) => DailyWeather.fromJson(e)).toList();
       }
       return [];
@@ -230,6 +258,11 @@ class QWeatherService {
     }
   }
 
+  /// 获取天气预警
+  /// 
+  /// [locationId]: 位置ID
+  /// 
+  /// 返回天气预警列表
   Future<List<WeatherAlert>> getWeatherAlerts(String locationId) async {
     try {
       final response = await _dio.get(
@@ -252,6 +285,11 @@ class QWeatherService {
     }
   }
 
+  /// 获取空气质量
+  /// 
+  /// [locationId]: 位置ID
+  /// 
+  /// 返回空气质量信息
   Future<AirQuality> getAirQuality(String locationId) async {
     try {
       final response = await _dio.get(
@@ -283,6 +321,11 @@ class QWeatherService {
     }
   }
 
+  /// 获取天气指数
+  /// 
+  /// [locationId]: 位置ID
+  /// 
+  /// 返回天气指数列表
   Future<List<WeatherIndices>> getWeatherIndices(String locationId) async {
     try {
       final response = await _dio.get(
@@ -306,8 +349,13 @@ class QWeatherService {
     }
   }
 
+  /// 获取完整的天气数据
+  /// 
+  /// [locationId]: 位置ID
+  /// [location]: 位置信息
+  /// 
+  /// 返回完整的天气数据
   Future<WeatherData> getFullWeatherData(String locationId, Location location) async {
-    // print('[QWeather] Getting full weather data for locationId: $locationId');
     final results = await Future.wait([
       getCurrentWeather(locationId),
       getHourlyWeather(locationId),
@@ -326,6 +374,9 @@ class QWeatherService {
   }
 }
 
+/// 和风天气服务Provider
+/// 
+/// 提供和风天气服务实例
 final qweatherServiceProvider = Provider<QWeatherService>((ref) {
   return QWeatherService();
 });

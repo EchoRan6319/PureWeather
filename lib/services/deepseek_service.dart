@@ -4,11 +4,22 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/api_config.dart';
 
+/// DeepSeek AI服务类，用于与DeepSeek API交互
 class DeepSeekService {
+  /// Dio实例，用于网络请求
   final Dio _dio;
+  
+  /// API密钥
   final String _apiKey;
+  
+  /// 基础URL
   final String _baseUrl;
 
+  /// 创建DeepSeek服务实例
+  /// 
+  /// [dio] Dio实例，默认为新创建的实例
+  /// [apiKey] API密钥，默认为ApiConfig中的配置
+  /// [baseUrl] 基础URL，默认为ApiConfig中的配置
   DeepSeekService({
     Dio? dio,
     String? apiKey,
@@ -23,6 +34,13 @@ class DeepSeekService {
         _apiKey = apiKey ?? ApiConfig.deepseekApiKey,
         _baseUrl = baseUrl ?? ApiConfig.deepseekBaseUrl;
 
+  /// 流式获取AI聊天回复
+  /// 
+  /// [userMessage] 用户消息
+  /// [history] 聊天历史
+  /// [weatherContext] 天气上下文信息
+  /// 
+  /// 返回流式的AI回复内容
   Stream<String> chatStream({
     required String userMessage,
     required List<ChatMessage> history,
@@ -110,6 +128,13 @@ ${weatherContext != null ? '【当前天气信息】\n$weatherContext' : '（暂
     }
   }
 
+  /// 获取AI聊天回复
+  /// 
+  /// [userMessage] 用户消息
+  /// [history] 聊天历史
+  /// [weatherContext] 天气上下文信息
+  /// 
+  /// 返回完整的AI回复内容
   Future<String> chat({
     required String userMessage,
     required List<ChatMessage> history,
@@ -127,22 +152,37 @@ ${weatherContext != null ? '【当前天气信息】\n$weatherContext' : '（暂
   }
 }
 
+/// 聊天消息类
 class ChatMessage {
+  /// 角色（user或assistant）
   final String role;
+  
+  /// 消息内容
   final String content;
+  
+  /// 时间戳
   final DateTime timestamp;
 
+  /// 创建聊天消息实例
+  /// 
+  /// [role] 角色
+  /// [content] 消息内容
+  /// [timestamp] 时间戳，默认为当前时间
   ChatMessage({
     required this.role,
     required this.content,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
+  /// 转换为JSON
   Map<String, dynamic> toJson() => {
         'role': role,
         'content': content,
       };
 
+  /// 从JSON创建聊天消息实例
+  /// 
+  /// [json] JSON数据
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       role: json['role'],
@@ -151,40 +191,61 @@ class ChatMessage {
   }
 }
 
+/// DeepSeek服务的Provider
 final deepSeekServiceProvider = Provider<DeepSeekService>((ref) {
   return DeepSeekService();
 });
 
+/// 聊天会话类
 class ChatSession {
+  /// 消息列表
   final List<ChatMessage> messages;
 
+  /// 创建聊天会话实例
+  /// 
+  /// [messages] 消息列表，默认为空列表
   ChatSession({List<ChatMessage>? messages}) : messages = messages ?? [];
 
+  /// 创建聊天会话的副本，可选择性修改消息列表
+  /// 
+  /// [messages] 消息列表
+  /// 
+  /// 返回修改后的ChatSession实例
   ChatSession copyWith({List<ChatMessage>? messages}) {
     return ChatSession(messages: messages ?? this.messages);
   }
 }
 
+/// 聊天通知器，管理聊天会话的状态
 class ChatNotifier extends StateNotifier<ChatSession> {
+  /// 创建聊天通知器实例
   ChatNotifier() : super(ChatSession());
 
+  /// 添加用户消息
+  /// 
+  /// [content] 消息内容
   void addUserMessage(String content) {
     state = state.copyWith(
       messages: [...state.messages, ChatMessage(role: 'user', content: content)],
     );
   }
 
+  /// 添加助手消息
+  /// 
+  /// [content] 消息内容
   void addAssistantMessage(String content) {
     state = state.copyWith(
       messages: [...state.messages, ChatMessage(role: 'assistant', content: content)],
     );
   }
 
+  /// 清除聊天历史
   void clearHistory() {
     state = ChatSession();
   }
 }
 
+/// 聊天会话的Provider
 final chatProvider = StateNotifierProvider<ChatNotifier, ChatSession>((ref) {
   return ChatNotifier();
 });

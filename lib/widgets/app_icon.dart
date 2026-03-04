@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 
 /// 应用图标绘制组件
+/// 
 /// 绘制与 Android 自适应图标相同的太阳半遮云图案
 class AppIcon extends StatelessWidget {
+  /// 图标大小
   final double size;
+  /// 背景颜色
   final Color? backgroundColor;
+  /// 太阳颜色
   final Color? sunColor;
+  /// 云朵颜色
   final Color? cloudColor;
 
+  /// 构造函数
+  /// 
+  /// [size]: 图标大小，默认80
+  /// [backgroundColor]: 背景颜色，默认使用主题的primaryContainer
+  /// [sunColor]: 太阳颜色，默认使用主题的primary
+  /// [cloudColor]: 云朵颜色，默认使用主题的secondary
   const AppIcon({
     super.key,
     this.size = 80,
@@ -19,7 +30,7 @@ class AppIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final bgColor = backgroundColor ?? colorScheme.primaryContainer.withOpacity(0.5);
+    final bgColor = backgroundColor ?? colorScheme.primaryContainer.withValues(alpha: 0.5);
     final sColor = sunColor ?? colorScheme.primary;
     final cColor = cloudColor ?? colorScheme.secondary;
 
@@ -41,10 +52,19 @@ class AppIcon extends StatelessWidget {
   }
 }
 
+/// 应用图标绘制器
+/// 
+/// 负责绘制太阳和云朵的具体图形
 class _AppIconPainter extends CustomPainter {
+  /// 太阳颜色
   final Color sunColor;
+  /// 云朵颜色
   final Color cloudColor;
 
+  /// 构造函数
+  /// 
+  /// [sunColor]: 太阳颜色
+  /// [cloudColor]: 云朵颜色
   _AppIconPainter({
     required this.sunColor,
     required this.cloudColor,
@@ -52,6 +72,7 @@ class _AppIconPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // 计算缩放比例
     final double scale = size.width / 108;
     canvas.scale(scale, scale);
 
@@ -65,17 +86,23 @@ class _AppIconPainter extends CustomPainter {
     _drawCloud(canvas, 12, 14);
   }
 
+  /// 绘制太阳
+  /// 
+  /// [canvas]: 画布
+  /// [offsetX]: X轴偏移
+  /// [offsetY]: Y轴偏移
   void _drawSun(Canvas canvas, double offsetX, double offsetY) {
     canvas.save();
     canvas.translate(offsetX, offsetY);
 
+    // 光芒画笔
     final paint = Paint()
       ..color = sunColor
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
-    // 绘制光芒
+    // 光芒坐标点
     final List<Offset> rays = [
       const Offset(15, 1), const Offset(15, 4),
       const Offset(15, 26), const Offset(15, 29),
@@ -87,6 +114,7 @@ class _AppIconPainter extends CustomPainter {
       const Offset(22.2, 7.8), const Offset(24.5, 5.5),
     ];
 
+    // 绘制光芒
     for (int i = 0; i < rays.length; i += 2) {
       canvas.drawLine(rays[i], rays[i + 1], paint);
     }
@@ -100,10 +128,16 @@ class _AppIconPainter extends CustomPainter {
     canvas.restore();
   }
 
+  /// 绘制云朵
+  /// 
+  /// [canvas]: 画布
+  /// [offsetX]: X轴偏移
+  /// [offsetY]: Y轴偏移
   void _drawCloud(Canvas canvas, double offsetX, double offsetY) {
     canvas.save();
     canvas.translate(offsetX, offsetY);
 
+    // 云朵画笔
     final paint = Paint()
       ..color = cloudColor
       ..style = PaintingStyle.fill;

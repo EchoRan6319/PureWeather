@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/weather_models.dart';
 
+/// 空气质量卡片组件
+/// 
+/// 显示空气质量指数和各种污染物数据
 class AirQualityCard extends StatelessWidget {
+  /// 空气质量数据
   final AirQuality airQuality;
 
+  /// 构造函数
+  /// 
+  /// [airQuality]: 空气质量数据
   const AirQualityCard({super.key, required this.airQuality});
 
   @override
@@ -15,6 +22,7 @@ class AirQualityCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 头部
             Row(
               children: [
                 Icon(
@@ -32,6 +40,7 @@ class AirQualityCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
+            // AQI指数和空气质量等级
             Row(
               children: [
                 _buildAqiCircle(context),
@@ -60,6 +69,7 @@ class AirQualityCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            // 污染物数据网格
             _buildPollutantsGrid(context),
           ],
         ),
@@ -67,6 +77,9 @@ class AirQualityCard extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
   }
 
+  /// 构建AQI圆形显示
+  /// 
+  /// [context]: 上下文
   Widget _buildAqiCircle(BuildContext context) {
     return Container(
       width: 80,
@@ -104,6 +117,9 @@ class AirQualityCard extends StatelessWidget {
     );
   }
 
+  /// 构建污染物数据网格
+  /// 
+  /// [context]: 上下文
   Widget _buildPollutantsGrid(BuildContext context) {
     final pollutants = [
       ('PM2.5', airQuality.pm2p5, 'μg/m³'),
@@ -133,6 +149,10 @@ class AirQualityCard extends StatelessWidget {
     );
   }
 
+  /// 构建单个污染物数据项
+  /// 
+  /// [context]: 上下文
+  /// [p]: 污染物数据 (名称, 值, 单位)
   Widget _buildPollutantItem(BuildContext context, (String, String, String) p) {
     return Column(
       children: [
@@ -159,18 +179,22 @@ class AirQualityCard extends StatelessWidget {
     );
   }
 
+  /// 根据AQI值获取对应颜色
+  /// 
+  /// [context]: 上下文
   Color _getAqiColor(BuildContext context) {
     final aqi = int.tryParse(airQuality.aqi) ?? 0;
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (aqi <= 50) return Colors.green.shade400; // Good
-    if (aqi <= 100) return Colors.yellow.shade600; // Moderate
-    if (aqi <= 150) return Colors.orange.shade400; // Unhealthy for Sensitive Groups
-    if (aqi <= 200) return colorScheme.error; // Unhealthy
-    if (aqi <= 300) return Colors.purple.shade400; // Very Unhealthy
-    return Colors.brown.shade400; // Hazardous
+    if (aqi <= 50) return Colors.green.shade400; // 优
+    if (aqi <= 100) return Colors.yellow.shade600; // 良
+    if (aqi <= 150) return Colors.orange.shade400; // 轻度污染
+    if (aqi <= 200) return colorScheme.error; // 中度污染
+    if (aqi <= 300) return Colors.purple.shade400; // 重度污染
+    return Colors.brown.shade400; // 严重污染
   }
 
+  /// 获取主要污染物
   String _getMainPollutant() {
     final values = {
       'PM2.5': double.tryParse(airQuality.pm2p5) ?? 0,
