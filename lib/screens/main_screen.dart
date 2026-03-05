@@ -136,7 +136,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   /// 获取屏幕列表
   ///
-  /// [showAIAssistant] 是否显示AI助手
+  /// [showAIAssistant] 是否显示天气助手
   ///
   /// 返回屏幕列表
   List<Widget> _getScreens(bool showAIAssistant) {
@@ -149,7 +149,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   /// 获取导航目标列表
   ///
-  /// [showAIAssistant] 是否显示AI助手
+  /// [showAIAssistant] 是否显示天气助手
   ///
   /// 返回导航目标列表
   List<NavigationDestination> _getDestinations(bool showAIAssistant) {
@@ -163,7 +163,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         const NavigationDestination(
           icon: Icon(Icons.psychology_outlined),
           selectedIcon: Icon(Icons.psychology),
-          label: 'AI助手',
+          label: '天气助手',
         ),
       const NavigationDestination(
         icon: Icon(Icons.settings_outlined),
@@ -206,18 +206,18 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _refreshLocationWithNewAccuracy(next.locationAccuracyLevel);
       }
 
-      // 处理AI助手开关状态变化
+      // 处理天气助手开关状态变化
       if (previous.showAIAssistant != next.showAIAssistant) {
         setState(() {
           if (next.showAIAssistant) {
-            // 如果AI助手启用，且当前在设置页面(索引1)，则切换到索引2
+            // 如果天气助手启用，且当前在设置页面(索引1)，则切换到索引2
             if (_currentIndex == 1) {
               _currentIndex = 2;
             }
           } else {
-            // 如果AI助手禁用
+            // 如果天气助手禁用
             if (_currentIndex == 1) {
-              // 如果当前在AI助手页面，切换到天气页面
+              // 如果当前在天气助手页面，切换到天气页面
               _currentIndex = 0;
             } else if (_currentIndex == 2) {
               // 如果当前在设置页面，切换到索引1

@@ -7,7 +7,7 @@ import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../models/weather_models.dart';
 
-/// AI天气助手屏幕
+/// 天气助手屏幕
 class AIAssistantScreen extends ConsumerStatefulWidget {
   const AIAssistantScreen({super.key});
 
@@ -15,7 +15,7 @@ class AIAssistantScreen extends ConsumerStatefulWidget {
   ConsumerState<AIAssistantScreen> createState() => _AIAssistantScreenState();
 }
 
-/// AI天气助手屏幕状态
+/// 天气助手屏幕状态
 class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   /// 消息输入控制器
   final _messageController = TextEditingController();
@@ -135,7 +135,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI天气助手'),
+        title: const Text('天气助手'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),

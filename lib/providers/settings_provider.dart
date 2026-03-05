@@ -23,7 +23,7 @@ class AppSettings {
   final String temperatureUnit;
   /// 是否显示体感温度
   final bool showFeelsLike;
-  /// 是否显示AI助手
+  /// 是否显示天气助手
   final bool showAIAssistant;
   /// 位置精度级别
   final LocationAccuracyLevel locationAccuracyLevel;
@@ -56,7 +56,7 @@ class AppSettings {
   /// [refreshInterval]: 刷新间隔
   /// [temperatureUnit]: 温度单位
   /// [showFeelsLike]: 是否显示体感温度
-  /// [showAIAssistant]: 是否显示AI助手
+  /// [showAIAssistant]: 是否显示天气助手
   /// [locationAccuracyLevel]: 位置精度级别
   /// [weatherCardOrder]: 天气卡片顺序
   AppSettings copyWith({
@@ -102,7 +102,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const String _keyTemperatureUnit = 'temperature_unit';
   /// 显示体感温度设置键
   static const String _keyShowFeelsLike = 'show_feels_like';
-  /// 显示AI助手设置键
+  /// 显示天气助手设置键
   static const String _keyShowAIAssistant = 'show_ai_assistant';
   /// 位置精度级别设置键
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
@@ -217,7 +217,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(showFeelsLike: value);
   }
 
-  /// 设置是否显示AI助手
+  /// 设置是否显示天气助手
   /// 
   /// [value]: 是否显示
   Future<void> setShowAIAssistant(bool value) async {
