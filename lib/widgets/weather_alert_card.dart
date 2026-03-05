@@ -3,84 +3,135 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../models/weather_models.dart';
 
-class WeatherAlertCard extends StatelessWidget {
+class WeatherAlertCard extends StatefulWidget {
   final List<WeatherAlert> alerts;
 
   const WeatherAlertCard({super.key, required this.alerts});
 
   @override
+  State<WeatherAlertCard> createState() => _WeatherAlertCardState();
+}
+
+class _WeatherAlertCardState extends State<WeatherAlertCard> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    if (alerts.isEmpty) return const SizedBox.shrink();
+    if (widget.alerts.isEmpty) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
-    final alertColor = _getAlertColor(alerts.first.level, colorScheme);
-    final textColor = _getAlertTextColor(alerts.first.level, colorScheme);
+    final alertColor = _getAlertColor(widget.alerts.first.level, colorScheme);
+    final textColor = _getAlertTextColor(widget.alerts.first.level, colorScheme);
+    final levelColor = _getLevelColor(widget.alerts.first.level, colorScheme);
+    final backgroundColor = alertColor.withValues(alpha: 0.5);
+    final elevation = 2.0;
 
-    return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: alertColor,
-            borderRadius: BorderRadius.circular(12),
+    return Card(
+      color: backgroundColor,
+      elevation: elevation,
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: alertColor.withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _isExpanded = !_isExpanded;
+          });
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 16,
+            left: 16,
+            right: 16,
+            bottom: 12,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 20,
+                    color: levelColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.alerts.first.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: levelColor,
+                  ),
+                ],
               ),
-              childrenPadding: EdgeInsets.zero,
-              leading: Icon(Icons.warning_amber_rounded, color: textColor),
-              title: Text(
-                alerts.first.title,
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
+              const SizedBox(height: 8),
+              Text(
+                '${widget.alerts.length}条预警',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: textColor.withValues(alpha: 0.7),
+                    ),
+              ),
+              if (_isExpanded) ...[
+                const SizedBox(height: 16),
+                Container(
+                  height: 1,
+                  width: double.infinity,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ).animate().fadeIn(duration: 300.ms),
+                const SizedBox(height: 16),
+                ...widget.alerts.map((alert) => _AlertItem(alert: alert)
+                    .animate()
+                    .fadeIn(duration: 300.ms, delay: 100.ms)
+                    .slideY(begin: 0.1, end: 0, duration: 300.ms, delay: 100.ms)
                 ),
-              ),
-              subtitle: Text(
-                '${alerts.length}条预警',
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.8),
-                  fontSize: 12,
-                ),
-              ),
-              collapsedIconColor: textColor,
-              iconColor: textColor,
-              children: alerts
-                  .map(
-                    (alert) =>
-                        _AlertItem(alert: alert, parentColor: alertColor),
-                  )
-                  .toList(),
-            ),
+              ],
+            ],
           ),
-        )
-        .animate()
-        .fadeIn(duration: 400.ms, curve: Curves.easeInOut)
-        .slideY(begin: -0.2, end: 0, duration: 400.ms, curve: Curves.easeInOut)
-        .scale(
-          begin: const Offset(0.95, 0.95),
-          end: const Offset(1, 1),
-          duration: 400.ms,
-          curve: Curves.easeInOut,
-        );
+        ),
+      ),
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
   }
 
   Color _getAlertColor(String level, ColorScheme colorScheme) {
     switch (level) {
       case '红色':
-        return colorScheme.errorContainer;
+        return colorScheme.error;
       case '橙色':
-        return Color.lerp(colorScheme.tertiaryContainer, Colors.orange.withValues(alpha: 0.1), 0.5)!;
+        return Colors.orange;
       case '黄色':
-        return Color.lerp(colorScheme.secondaryContainer, Colors.yellow.withValues(alpha: 0.1), 0.5)!;
+        return Colors.yellow.shade700;
       case '蓝色':
-        return colorScheme.primaryContainer;
+        return colorScheme.primary;
       default:
-        return colorScheme.surfaceContainerHighest;
+        return colorScheme.outline;
+    }
+  }
+
+  Color _getLevelColor(String level, ColorScheme colorScheme) {
+    switch (level) {
+      case '红色':
+        return colorScheme.error;
+      case '橙色':
+        return Colors.orange;
+      case '黄色':
+        return Colors.yellow.shade700;
+      case '蓝色':
+        return colorScheme.primary;
+      default:
+        return colorScheme.outline;
     }
   }
 
@@ -102,62 +153,29 @@ class WeatherAlertCard extends StatelessWidget {
 
 class _AlertItem extends StatelessWidget {
   final WeatherAlert alert;
-  final Color parentColor;
 
-  const _AlertItem({required this.alert, required this.parentColor});
+  const _AlertItem({required this.alert});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: parentColor,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 16),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getLevelColor(Theme.of(context).colorScheme),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  alert.level,
-                  style: TextStyle(
-                    color: _getLevelTextColor(Theme.of(context).colorScheme),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  alert.typeName,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(color: _getAlertTextColor(alert.level, Theme.of(context).colorScheme)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
           Text(
             alert.text,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: _getAlertTextColor(alert.level, Theme.of(context).colorScheme).withValues(alpha: 0.9),
-            ),
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 4),
           Text(
             '发布时间: ${_formatPubTime(alert.pubTime)}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: _getAlertTextColor(alert.level, Theme.of(context).colorScheme).withValues(alpha: 0.7),
-              fontSize: 11,
-            ),
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                ),
           ),
         ],
       ),
@@ -196,47 +214,5 @@ class _AlertItem extends StatelessWidget {
     }
   }
 
-  Color _getLevelColor(ColorScheme colorScheme) {
-    switch (alert.level) {
-      case '红色':
-        return colorScheme.error;
-      case '橙色':
-        return Colors.orange;
-      case '黄色':
-        return Colors.yellow.shade700;
-      case '蓝色':
-        return colorScheme.primary;
-      default:
-        return colorScheme.outline;
-    }
-  }
-
-  Color _getAlertTextColor(String level, ColorScheme colorScheme) {
-    switch (level) {
-      case '红色':
-        return colorScheme.onErrorContainer;
-      case '橙色':
-        return colorScheme.onTertiaryContainer;
-      case '黄色':
-        return colorScheme.onSecondaryContainer;
-      case '蓝色':
-        return colorScheme.onPrimaryContainer;
-      default:
-        return colorScheme.onSurfaceVariant;
-    }
-  }
-
-  Color _getLevelTextColor(ColorScheme colorScheme) {
-    switch (alert.level) {
-      case '红色':
-        return colorScheme.onError;
-      case '橙色':
-      case '蓝色':
-        return Colors.white;
-      case '黄色':
-        return Colors.black;
-      default:
-        return Colors.white;
-    }
-  }
 }
+
