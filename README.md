@@ -258,6 +258,13 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d windows
    ```
 
+### Web（自行测试）
+
+1. **运行调试版**
+   ```bash
+   # 运行 Web 应用
+   flutter run -d web
+   ```
 ### iOS（自行测试）
 
 1. **运行调试版**
@@ -282,13 +289,6 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d linux
    ```
 
-### Web（自行测试）
-
-1. **运行调试版**
-   ```bash
-   # 运行 Web 应用
-   flutter run -d web
-   ```
 
 ## 构建指南
 
@@ -322,6 +322,20 @@ flutter build windows --release
 # Release 版本：build\windows\runner\Release\pureweather.exe
 ```
 
+### Web
+
+```bash
+# 构建 Debug 版本
+flutter build web
+
+# 构建 Release 版本
+flutter build web --release
+
+# 部署 Web 应用
+# 将 build/web 目录下的文件部署到 Web 服务器
+# 支持静态网站托管服务
+```
+
 ### iOS（自行测试）
 
 ```bash
@@ -352,19 +366,6 @@ flutter build linux
 flutter build linux --release
 ```
 
-### Web（自行测试）
-
-```bash
-# 构建 Debug 版本
-flutter build web
-
-# 构建 Release 版本
-flutter build web --release
-
-# 部署 Web 应用
-# 将 build/web 目录下的文件部署到 Web 服务器
-# 支持静态网站托管服务
-```
 
 ## 常见问题解决
 
