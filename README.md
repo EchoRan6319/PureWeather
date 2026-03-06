@@ -193,6 +193,10 @@ export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
 - 字体文件名称为 `OPPO Sans 4.0.ttf`
 - 本项目保留了完整的 OPPO Sans 4.0 许可证文件，确保合规性
 
+**为什么要内置字体？**
+   - 因为使用 Flutter 3.38.X+ 版本开发的应用在 ColorOS 设备上无法跟随系统字体，会被错误的映射为 OPPO Serif。为了解决字体错误的映射才出此下策选择内置字体
+
+
 ### API 配置
 
 1. **申请 API Key**
@@ -387,6 +391,7 @@ flutter build linux --release
    - 检查 API Key 是否正确配置
    - 确认网络连接正常
    - 查看 API 服务是否有访问限制
+
 
 ## 版本历史
 
