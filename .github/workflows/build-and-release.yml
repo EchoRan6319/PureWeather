@@ -16,8 +16,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.3'
-          channel: 'stable'
+          flutter-version: 3.41.3
+          channel: stable
 
       - name: Install dependencies
         run: flutter pub get
@@ -95,6 +95,7 @@ jobs:
 
       - name: Zip Web build
         run: |
+          mkdir -p artifacts
           cd artifacts/web
           zip -r ../pureweather-web.zip .
 
@@ -105,6 +106,8 @@ jobs:
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
