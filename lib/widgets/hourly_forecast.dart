@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'dart:io';
 import 'dart:ui';
 import '../models/weather_models.dart';
 import '../core/constants/app_constants.dart';
