@@ -9,12 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - android
-          - windows
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,50 +16,125 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.3'
-          channel: 'stable'
+          flutter-version: 3.41.3
+          channel: stable
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Android APK
-        if: matrix.target == 'android'
-        run: flutter build apk --release
+      - name: Build Android
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: flutter build apk --release --target-platform android-arm64
 
       - name: Build Windows
-        if: matrix.target == 'windows'
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: flutter build windows --release
 
-      - name: Create release
-        if: matrix.target == 'android'
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Build Web
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: flutter build web --release
+
+      - name: Build Linux
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: flutter build linux --release
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 1
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/windows/x64/runner/Release/pureweather.exe
+          retention-days: 1
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+          retention-days: 1
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: build/linux/x64/release/bundle
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-build
+          path: artifacts/android
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: artifacts/windows
+
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: artifacts/web
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: artifacts/linux
+
+      - name: Zip Web build
+        run: |
+          mkdir -p artifacts
+          cd artifacts/web
+          zip -r ../pureweather-web.zip .
+
+      - name: Zip Linux build
+        run: |
+          cd artifacts/linux
+          zip -r ../pureweather-linux.zip bundle
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-
-      - name: Upload Android APK
-        if: matrix.target == 'android'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: PureWeather-${{ github.ref_name }}-android.apk
-          asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload Windows executable
-        if: matrix.target == 'windows'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/windows/x64/runner/Release/pureweather.exe
-          asset_name: PureWeather-${{ github.ref_name }}-windows.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
+          files: artifacts/android/app-release.apk,artifacts/windows/pureweather.exe,artifacts/pureweather-web.zip,artifacts/pureweather-linux.zip
