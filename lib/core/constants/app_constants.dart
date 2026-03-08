@@ -7,7 +7,7 @@ class AppConstants {
   static const String appName = '轻氧天气';
   
   /// 应用版本号
-  static const String appVersion = '2.0.0';
+  static const String appVersion = '3.4.0';
 
   /// API 请求超时时间
   static const Duration apiTimeout = Duration(seconds: 15);
