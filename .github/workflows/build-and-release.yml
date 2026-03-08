@@ -28,6 +28,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate .env for Flutter asset bundling
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          cat > .env << EOF
+          QWEATHER_API_KEY=$QWEATHER_API_KEY
+          CAIYUN_API_KEY=$CAIYUN_API_KEY
+          AMAP_API_KEY=$AMAP_API_KEY
+          AMAP_WEB_KEY=$AMAP_WEB_KEY
+          DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
+          EOF
+
       - name: Build Android APK
         env:
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
@@ -67,6 +83,23 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Generate .env for Flutter asset bundling
+        shell: pwsh
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          @"
+          QWEATHER_API_KEY=$env:QWEATHER_API_KEY
+          CAIYUN_API_KEY=$env:CAIYUN_API_KEY
+          AMAP_API_KEY=$env:AMAP_API_KEY
+          AMAP_WEB_KEY=$env:AMAP_WEB_KEY
+          DEEPSEEK_API_KEY=$env:DEEPSEEK_API_KEY
+          "@ | Set-Content -Path .env -Encoding UTF8
 
       - name: Build Windows
         shell: pwsh
