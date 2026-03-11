@@ -182,20 +182,6 @@ export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
 export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
 ```
 
-### 字体要求
-
-本项目已包含 `OPPO Sans 4.0` 字体文件，无需手动下载。
-
-**说明**：根据 OPPO Sans 4.0 字体的开源许可要求，本项目将字体文件与应用程序一起分发，符合许可证的使用条款。
-
-- 字体文件位于项目根目录的 `exfonts` 文件夹中
-- 字体文件名称为 `OPPO Sans 4.0.ttf`
-- 本项目保留了完整的 OPPO Sans 4.0 许可证文件，确保合规性
-
-**为什么要内置字体？**
-   - 因为使用 Flutter 3.38.X+ 版本开发的应用在 ColorOS 设备上无法跟随系统字体，会被错误的映射为 OPPO Serif。为了解决字体错误的映射，才出此下策选择内置字体
-
-
 ### API 配置
 
 1. **申请 API Key**
