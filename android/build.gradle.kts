@@ -1,7 +1,23 @@
+import org.gradle.api.JavaVersion
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+// 统一所有子项目的Java版本，消除Java 8过时警告
+subprojects {
+    afterEvaluate {
+        if (hasProperty("android")) {
+            extensions.configure<com.android.build.gradle.BaseExtension>("android") {
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_21
+                    targetCompatibility = JavaVersion.VERSION_21
+                }
+            }
+        }
     }
 }
 
