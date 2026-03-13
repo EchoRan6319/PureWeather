@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 /// 自定义颜色类，封装了应用中使用的所有颜色
 /// 
@@ -185,112 +186,115 @@ class AppTheme {
     required bool useMaterial3,
     String? fontFamily,
   }) {
-    // 统一的文本主题，确保跨平台字体一致性
+    // Windows平台强制使用微软雅黑字体，其他平台使用系统默认字体
+    final effectiveFontFamily = Platform.isWindows ? 'Microsoft YaHei' : fontFamily;
+
+    // 统一的文本主题，确保跨平台字体一致�?
     final textTheme = TextTheme(
       displayLarge: TextStyle(
         fontSize: 57,
         fontWeight: FontWeight.w400,
         letterSpacing: -0.25,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       displayMedium: TextStyle(
         fontSize: 45,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       displaySmall: TextStyle(
         fontSize: 36,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       headlineLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       headlineMedium: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       headlineSmall: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       titleLarge: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       titleMedium: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.15,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       titleSmall: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       bodySmall: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       labelMedium: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.5,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
       labelSmall: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.5,
         color: colorScheme.onSurface,
-        fontFamily: fontFamily,
+        fontFamily: effectiveFontFamily,
       ),
     );
 
@@ -298,7 +302,7 @@ class AppTheme {
       useMaterial3: useMaterial3,
       colorScheme: colorScheme,
       brightness: colorScheme.brightness,
-      fontFamily: fontFamily,
+      fontFamily: effectiveFontFamily,
       textTheme: textTheme,
       scaffoldBackgroundColor: colorScheme.surfaceContainer,
       
@@ -345,14 +349,14 @@ class AppTheme {
               color: colorScheme.onSurface,
               fontWeight: FontWeight.w500,
               fontSize: 12,
-              fontFamily: fontFamily,
+              fontFamily: effectiveFontFamily,
             );
           }
           return TextStyle(
             color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w400,
             fontSize: 12,
-            fontFamily: fontFamily,
+            fontFamily: effectiveFontFamily,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -367,7 +371,7 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: colorScheme.surfaceContainerHighest,
         selectedColor: colorScheme.secondaryContainer,
-        labelStyle: TextStyle(color: colorScheme.onSurface, fontFamily: fontFamily),
+        labelStyle: TextStyle(color: colorScheme.onSurface, fontFamily: effectiveFontFamily),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       
@@ -449,7 +453,7 @@ class AppTheme {
       //  snackbar主题
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colorScheme.inverseSurface,
-        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface, fontFamily: fontFamily),
+        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface, fontFamily: effectiveFontFamily),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),

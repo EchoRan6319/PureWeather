@@ -5,9 +5,7 @@ import 'dart:ui';
 import '../../services/deepseek_service.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
-import '../../providers/language_provider.dart';
 import '../../models/weather_models.dart';
-import '../../generated/l10n/app_localizations.dart';
 
 /// 天气助手屏幕
 class AIAssistantScreen extends ConsumerStatefulWidget {
@@ -70,16 +68,11 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
         .where((m) => m.role != 'system')
         .toList();
 
-    // 获取当前语言设置
-    final languageMode = ref.read(languageProvider);
-    final language = languageMode == LanguageMode.en ? 'en' : 'zh';
-
     try {
       final response = service.chatStream(
         userMessage: message,
         history: history,
         weatherContext: weatherContext,
-        language: language,
       );
 
       await for (final chunk in response) {
@@ -91,8 +84,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
       ref.read(chatProvider.notifier).addAssistantMessage(_currentResponse);
     } catch (e) {
-      final errorMsg = AppLocalizations.of(context).ai_error_message;
-      ref.read(chatProvider.notifier).addAssistantMessage(errorMsg);
+      ref.read(chatProvider.notifier).addAssistantMessage('抱歉，发生了错误。请稍后再试。');
     } finally {
       setState(() {
         _isTyping = false;
@@ -208,18 +200,17 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   @override
   Widget build(BuildContext context) {
     final chatSession = ref.watch(chatProvider);
-    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.ai_assistant_title),
+        title: const Text('天气助手'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () {
               ref.read(chatProvider.notifier).clearHistory();
             },
-            tooltip: l10n.clear_chat,
+            tooltip: '清空对话',
           ),
         ],
       ),
@@ -257,10 +248,6 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
   /// 构建空状态
   Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context);
-    // 检查当前是否为英文
-    final isEnglish = Localizations.localeOf(context).languageCode == 'en';
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -282,61 +269,26 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
             ).animate().scale(duration: 400.ms),
             const SizedBox(height: 24),
             Text(
-              l10n.ai_assistant_greeting,
+              '你好，我是轻氧天气助手',
               style: Theme.of(context).textTheme.titleLarge,
             ).animate().fadeIn(delay: 200.ms),
             const SizedBox(height: 8),
             Text(
-              l10n.ai_assistant_description,
+              '我可以帮你解答天气相关问题，提供穿衣建议、出行提醒等',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 300.ms),
-            // 英文提示
-            if (isEnglish) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.error.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        'Note: The AI model used by this app has limited English support. We apologize for any inconvenience.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(delay: 350.ms),
-            ],
             const SizedBox(height: 32),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _buildQuickAction(l10n.ai_quick_action_1),
-                _buildQuickAction(l10n.ai_quick_action_2),
-                _buildQuickAction(l10n.ai_quick_action_3),
+                _buildQuickAction('今天适合户外运动吗？'),
+                _buildQuickAction('明天需要带伞吗？'),
+                _buildQuickAction('今天穿什么合适？'),
               ],
             ).animate().fadeIn(delay: 400.ms),
           ],
@@ -392,7 +344,6 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
   /// 构建输入指示器
   Widget _buildTypingIndicator() {
-    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -412,7 +363,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            l10n.ai_thinking,
+            '正在思考...',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -424,7 +375,6 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
   /// 构建输入区域
   Widget _buildInputArea() {
-    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
@@ -444,7 +394,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               controller: _messageController,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: l10n.ai_input_hint,
+                hintText: '输入消息...',
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceContainer,
                 border: OutlineInputBorder(
@@ -506,228 +456,15 @@ class _ChatBubble extends StatelessWidget {
   String _formatAssistantMessage(String input) {
     var text = input.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
-    // First, apply word segmentation to fix AI's missing spaces
-    text = _segmentWords(text);
-
     // Keep numbered items readable even when model returns one long line.
     text = text.replaceAll(RegExp(r'(?<!\n)(\d+[.、])\s*'), '\n\$1 ');
 
     // Break long paragraphs at sentence punctuation for readability.
-    // For Chinese punctuation, add newline.
-    text = text.replaceAllMapped(
-      RegExp(r'(?<=[。！？；])(?=[^\n])'),
-      (match) => '\n',
-    );
-    // For English punctuation, add newline but keep the space after punctuation.
-    text = text.replaceAllMapped(
-      RegExp(r'(?<=[.!?;])(\s*)(?=[^\n])'),
-      (match) => '\n${match.group(1) ?? ''}',
-    );
+    text = text.replaceAll(RegExp(r'(?<=[。！？；.!?;])(?=[^\n])'), '\n');
 
     // Avoid too many blank lines after formatting.
     text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
     return text;
-  }
-
-  /// Segment concatenated words using a comprehensive dictionary-based approach
-  String _segmentWords(String text) {
-    // Split text by lines first to preserve line structure
-    final lines = text.split('\n');
-    final processedLines = <String>[];
-
-    for (final line in lines) {
-      if (line.trim().isEmpty) {
-        processedLines.add(line);
-        continue;
-      }
-
-      // Process each line
-      var processedLine = _processLineWithDictionary(line);
-      processedLines.add(processedLine);
-    }
-
-    return processedLines.join('\n');
-  }
-
-  /// Comprehensive English word dictionary for segmentation
-  static final Set<String> _wordDictionary = {
-    // Common words
-    'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of',
-    'with', 'by', 'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been',
-    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-    'should', 'may', 'might', 'can', 'cannot', 'not', 'no', 'yes', 'so',
-    'if', 'then', 'than', 'when', 'where', 'what', 'who', 'why', 'how',
-    'all', 'any', 'both', 'each', 'every', 'few', 'more', 'most', 'much',
-    'many', 'other', 'some', 'such', 'only', 'own', 'same', 'so', 'than',
-    'too', 'very', 'just', 'now', 'also', 'back', 'after', 'use', 'two',
-    'way', 'even', 'new', 'want', 'because', 'give', 'day', 'most', 'us',
-    'get', 'make', 'go', 'know', 'take', 'see', 'come', 'think', 'look',
-    'time', 'year', 'work', 'good', 'first', 'well', 'way', 'up', 'out',
-    'down', 'off', 'over', 'under', 'again', 'further', 'then', 'once',
-    'here', 'there', 'up', 'down', 'in', 'out', 'on', 'off', 'over',
-    'under', 'again', 'further', 'then', 'once',
-
-    // Weather related words
-    'weather', 'temperature', 'temp', 'rain', 'raining', 'rainy', 'sunny',
-    'sun', 'cloud', 'cloudy', 'wind', 'windy', 'snow', 'snowy', 'storm',
-    'stormy', 'fog', 'foggy', 'mist', 'humid', 'humidity', 'dry', 'wet',
-    'cold', 'cool', 'warm', 'hot', 'freezing', 'mild', 'moderate', 'heavy',
-    'light', 'air', 'quality', 'pollution', 'polluted', 'clear', 'overcast',
-    'forecast', 'degree', 'celsius', 'fahrenheit', 'precipitation', 'uv',
-    'index', 'pressure', 'visibility', 'dew', 'point', 'chill', 'heat',
-    'thunder', 'thunderstorm', 'lightning', 'hail', 'sleet', 'drizzle',
-    'shower', 'showers', 'blizzard', 'breeze', 'gale', 'hurricane',
-    'tornado', 'cyclone', 'typhoon', 'monsoon', 'season', 'spring',
-    'summer', 'autumn', 'fall', 'winter', 'climate', 'atmospheric',
-
-    // Time related
-    'today', 'tomorrow', 'yesterday', 'morning', 'afternoon', 'evening',
-    'night', 'noon', 'midnight', 'dawn', 'dusk', 'sunrise', 'sunset',
-    'day', 'week', 'month', 'hour', 'minute', 'second', 'now', 'later',
-    'soon', 'early', 'late', 'before', 'after', 'during', 'while',
-    'around', 'about', 'until', 'till', 'from', 'to', 'at', 'on', 'in',
-    'pm', 'am', 'oclock', 'clock',
-
-    // Activity related
-    'outdoor', 'indoor', 'sport', 'sports', 'exercise', 'exercising',
-    'activity', 'activities', 'run', 'running', 'walk', 'walking',
-    'swim', 'swimming', 'cycle', 'cycling', 'bike', 'biking', 'hike',
-    'hiking', 'climb', 'climbing', 'play', 'playing', 'game', 'games',
-    'workout', 'gym', 'fitness', 'training', 'practice', 'match',
-    'competition', 'event', 'picnic', 'camping', 'travel', 'trip',
-    'journey', 'tour', 'vacation', 'holiday', 'outing',
-
-    // Advice related
-    'advice', 'advise', 'recommend', 'recommendation', 'suggest',
-    'suggestion', 'tip', 'tips', 'guide', 'guideline', 'rule', 'rules',
-    'should', 'must', 'need', 'needs', 'needed', 'require', 'required',
-    'necessary', 'important', 'essential', 'better', 'best', 'good',
-    'bad', 'worse', 'worst', 'ideal', 'suitable', 'appropriate',
-    'proper', 'fit', 'fitting', 'comfortable', 'safe', 'dangerous',
-    'risk', 'risky', 'caution', 'careful', 'beware', 'avoid', 'prevent',
-    'protect', 'protection', 'prepare', 'preparation', 'ready',
-    'plan', 'planning', 'consider', 'considering', 'think', 'thinking',
-
-    // Health related
-    'health', 'healthy', 'unhealthy', 'safe', 'safety', 'danger',
-    'harm', 'harmful', 'irritate', 'irritating', 'irritated',
-    'allergy', 'allergic', 'asthma', 'breathing', 'breath', 'lung',
-    'lungs', 'heart', 'skin', 'eye', 'eyes', 'throat', 'cough',
-    'sneeze', 'sneezing', 'symptom', 'symptoms', 'condition',
-    'medical', 'medicine', 'doctor', 'hospital', 'emergency',
-
-    // Clothing related
-    'clothes', 'clothing', 'wear', 'wearing', 'dress', 'dressing',
-    'jacket', 'coat', 'sweater', 'shirt', 'tshirt', 'pants', 'shorts',
-    'skirt', 'dress', 'suit', 'uniform', 'shoes', 'boots', 'sandals',
-    'hat', 'cap', 'gloves', 'scarf', 'umbrella', 'raincoat',
-    'waterproof', 'warm', 'warmer', 'cool', 'cooler', 'layer',
-    'layers', 'cover', 'protect', 'sunscreen', 'sunglasses',
-
-    // Location related
-    'outside', 'inside', 'outdoors', 'indoors', 'home', 'house',
-    'building', 'room', 'office', 'school', 'park', 'garden', 'yard',
-    'street', 'road', 'highway', 'path', 'trail', 'track', 'field',
-    'court', 'pool', 'beach', 'mountain', 'hill', 'valley', 'river',
-    'lake', 'sea', 'ocean', 'city', 'town', 'village', 'area',
-    'region', 'zone', 'place', 'location', 'spot', 'site',
-
-    // Degree and measurement
-    'high', 'higher', 'highest', 'low', 'lower', 'lowest', 'level',
-    'levels', 'amount', 'amounts', 'quantity', 'quantities', 'measure',
-    'measurement', 'degree', 'degrees', 'percent', 'percentage', 'rate',
-    'ratio', 'value', 'values', 'number', 'numbers', 'count', 'total',
-    'sum', 'average', 'mean', 'maximum', 'max', 'minimum', 'min',
-    'range', 'limit', 'limits', 'extreme', 'moderate', 'normal',
-
-    // Condition related
-    'condition', 'conditions', 'situation', 'state', 'status', 'case',
-    'environment', 'atmosphere', 'surrounding', 'surroundings',
-    'context', 'circumstance', 'circumstances', 'factor', 'factors',
-    'element', 'elements', 'aspect', 'aspects', 'feature', 'features',
-    'characteristic', 'characteristics', 'property', 'properties',
-    'quality', 'qualities', 'nature', 'type', 'types', 'kind', 'kinds',
-    'sort', 'sorts', 'form', 'forms', 'way', 'ways', 'manner', 'mode',
-
-    // Response structure words
-    'conclusion', 'conclude', 'concluding', 'summary', 'summarize',
-    'reason', 'reasons', 'because', 'cause', 'causes', 'caused',
-    'due', 'result', 'results', 'resulting', 'effect', 'effects',
-    'affect', 'affects', 'affected', 'impact', 'impacts', 'influence',
-    'factor', 'factors', 'why', 'how', 'what', 'when', 'where',
-    'additional', 'additionally', 'also', 'besides', 'furthermore',
-    'moreover', 'however', 'therefore', 'thus', 'hence', 'consequently',
-    'otherwise', 'instead', 'alternatively', 'meanwhile', 'otherwise',
-  };
-
-  /// Process a single line using dictionary-based segmentation
-  String _processLineWithDictionary(String line) {
-    var result = StringBuffer();
-    var i = 0;
-
-    while (i < line.length) {
-      final char = line[i];
-
-      // If it's not a letter, just add it
-      if (!RegExp(r'[a-zA-Z]').hasMatch(char)) {
-        result.write(char);
-        i++;
-        continue;
-      }
-
-      // Find the longest matching word starting at position i
-      String? bestMatch;
-      int bestLength = 0;
-
-      // Try different word lengths (max 25 characters)
-      for (int len = 1; len <= 25 && i + len <= line.length; len++) {
-        final substr = line.substring(i, i + len).toLowerCase();
-
-        // Check if this is a valid word
-        if (_wordDictionary.contains(substr)) {
-          // Prefer longer matches
-          if (len > bestLength) {
-            bestMatch = substr;
-            bestLength = len;
-          }
-        }
-
-        // Also check if we've reached a good break point
-        // (next char is uppercase or non-letter)
-        if (i + len < line.length) {
-          final nextChar = line[i + len];
-          if (RegExp(r'[A-Z]').hasMatch(nextChar) ||
-              !RegExp(r'[a-zA-Z]').hasMatch(nextChar)) {
-            // If we have a match at this point, use it
-            if (bestMatch != null) {
-              break;
-            }
-          }
-        }
-      }
-
-      // If we found a match, use it
-      if (bestMatch != null && bestLength > 0) {
-        // Add space before word if needed
-        if (result.isNotEmpty &&
-            !result.toString().endsWith(' ') &&
-            !result.toString().endsWith('\n') &&
-            !result.toString().endsWith(':') &&
-            !result.toString().endsWith(',')) {
-          result.write(' ');
-        }
-
-        // Write the word with original case
-        result.write(line.substring(i, i + bestLength));
-        i += bestLength;
-      } else {
-        // No match found, just copy the character
-        result.write(char);
-        i++;
-      }
-    }
-
-    return result.toString();
   }
 
   @override

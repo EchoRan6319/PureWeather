@@ -134,7 +134,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dynamic_color_desc =>
-      'Generate theme from wallpaper (Recommended OFF for ColorOS)';
+      'Generate theme from wallpaper';
 
   @override
   String get light_mode => 'Light Mode';

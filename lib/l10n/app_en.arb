@@ -42,7 +42,7 @@
   "theme_mode": "Theme Mode",
   "theme_color": "Theme Color",
   "dynamic_color": "Dynamic Color",
-  "dynamic_color_desc": "Generate theme from wallpaper (Recommended OFF for ColorOS)",
+  "dynamic_color_desc": "Generate theme from wallpaper",
   "light_mode": "Light Mode",
   "dark_mode": "Dark Mode",
   "custom_color": "Custom Color",

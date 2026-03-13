@@ -42,7 +42,7 @@
   "theme_mode": "主题模式",
   "theme_color": "主题颜色",
   "dynamic_color": "动态取色",
-  "dynamic_color_desc": "根据壁纸自动生成主题色 (ColorOS 设备建议关闭)",
+  "dynamic_color_desc": "根据壁纸自动生成主题色",
   "light_mode": "浅色模式",
   "dark_mode": "深色模式",
   "custom_color": "自定义颜色",

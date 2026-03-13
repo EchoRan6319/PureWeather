@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @dynamic_color_desc.
   ///
   /// In zh, this message translates to:
-  /// **'根据壁纸自动生成主题色 (ColorOS 设备建议关闭)'**
+  /// **'根据壁纸自动生成主题色'**
   String get dynamic_color_desc;
 
   /// No description provided for @light_mode.
