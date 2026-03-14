@@ -140,9 +140,10 @@ class _CardOrderScreenState extends ConsumerState<CardOrderScreen> {
                 return AnimatedBuilder(
                   animation: animation,
                   builder: (context, child) {
-                    final elevationValue = animation.value * 8;
+                    // 使用透明背景，移除阴影和白色背景
                     return Material(
-                      elevation: elevationValue,
+                      elevation: 0,
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
                       child: child,
                     );
