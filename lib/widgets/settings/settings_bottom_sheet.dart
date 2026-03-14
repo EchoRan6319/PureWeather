@@ -4,48 +4,86 @@ import 'package:flutter_animate/flutter_animate.dart';
 /// Material You 风格的底部弹窗组件
 ///
 /// 遵循 Material 3 设计规范，提供统一的视觉风格和交互体验
-class SettingsBottomSheet extends StatelessWidget {
+/// 支持根据内容动态调整高度
+class SettingsBottomSheet extends StatefulWidget {
   /// 弹窗标题
   final String title;
 
   /// 子组件列表
   final List<Widget> children;
 
-  /// 初始高度比例
-  final double initialChildSize;
-
-  /// 最小高度比例
-  final double minChildSize;
-
-  /// 最大高度比例
-  final double maxChildSize;
-
-  /// 是否可展开
-  final bool expand;
-
   /// 底部操作按钮（可选）
   final Widget? bottomAction;
+
+  /// 每个选项的估计高度（用于计算初始高度）
+  final double itemEstimatedHeight;
+
+  /// 头部区域高度（拖动条 + 标题）
+  final double headerHeight;
+
+  /// 底部内边距
+  final double bottomPadding;
 
   const SettingsBottomSheet({
     super.key,
     required this.title,
     required this.children,
-    this.initialChildSize = 0.5,
-    this.minChildSize = 0.3,
-    this.maxChildSize = 0.7,
-    this.expand = false,
     this.bottomAction,
+    this.itemEstimatedHeight = 72.0, // 每个选项估计高度
+    this.headerHeight = 100.0, // 拖动条(24) + 标题(76)
+    this.bottomPadding = 24.0,
   });
+
+  @override
+  State<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
+}
+
+class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
+  late double _initialChildSize;
+  late double _minChildSize;
+  late double _maxChildSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateSizes();
+  }
+
+  void _calculateSizes() {
+    // 计算内容总高度
+    final contentHeight = widget.children.length * widget.itemEstimatedHeight;
+    final totalHeight = widget.headerHeight + contentHeight + widget.bottomPadding;
+    
+    // 获取屏幕高度（使用一个合理的默认值，实际会在build中重新计算）
+    const screenHeight = 800.0; // 默认屏幕高度
+    
+    // 计算比例
+    double calculatedSize = totalHeight / screenHeight;
+    
+    // 限制在合理范围内
+    _initialChildSize = calculatedSize.clamp(0.25, 0.6);
+    _minChildSize = calculatedSize.clamp(0.2, 0.4);
+    _maxChildSize = 0.8;
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // 根据实际屏幕高度重新计算
+    final contentHeight = widget.children.length * widget.itemEstimatedHeight;
+    final totalHeight = widget.headerHeight + contentHeight + widget.bottomPadding;
+    
+    double calculatedSize = totalHeight / screenHeight;
+    _initialChildSize = calculatedSize.clamp(0.25, 0.6);
+    _minChildSize = (_initialChildSize * 0.8).clamp(0.2, 0.4);
 
     return DraggableScrollableSheet(
-      initialChildSize: initialChildSize,
-      minChildSize: minChildSize,
-      maxChildSize: maxChildSize,
-      expand: expand,
+      initialChildSize: _initialChildSize,
+      minChildSize: _minChildSize,
+      maxChildSize: _maxChildSize,
+      expand: false,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -61,7 +99,7 @@ class SettingsBottomSheet extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                 child: Text(
-                  title,
+                  widget.title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
@@ -69,18 +107,19 @@ class SettingsBottomSheet extends StatelessWidget {
                 ),
               ),
               // 内容区域
-              Expanded(
+              Flexible(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  children: children,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  children: widget.children,
                 ),
               ),
               // 底部操作按钮
-              if (bottomAction != null)
+              if (widget.bottomAction != null)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  child: bottomAction,
+                  child: widget.bottomAction,
                 ),
             ],
           ),
@@ -172,7 +211,7 @@ class SettingsSelectionItem extends StatelessWidget {
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Icon(
@@ -182,29 +221,34 @@ class SettingsSelectionItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: titleColor,
-                          height: 1.3,
-                        ),
-                      ),
-                      if (hasSubtitle) ...[
-                        const SizedBox(height: 2),
+                  child: SizedBox(
+                    height: 44, // 固定高度确保所有选项高度一致
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: hasSubtitle
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
+                      children: [
                         Text(
-                          subtitle!,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: subtitleColor,
-                            height: 1.3,
+                          title,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color: titleColor,
+                            height: 1.2,
                           ),
                         ),
+                        if (hasSubtitle)
+                          Text(
+                            subtitle!,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: subtitleColor,
+                              height: 1.2,
+                            ),
+                          )
+                        else
+                          const SizedBox.shrink(),
                       ],
-                    ],
+                    ),
                   ),
                 ),
                 if (isSelected)
@@ -225,14 +269,14 @@ class SettingsSelectionItem extends StatelessWidget {
 }
 
 /// 显示设置底部弹窗的便捷方法
+/// 
+/// 自动根据内容数量计算合适的弹窗高度
 Future<void> showSettingsBottomSheet({
   required BuildContext context,
   required String title,
   required List<Widget> children,
-  double initialChildSize = 0.5,
-  double minChildSize = 0.3,
-  double maxChildSize = 0.7,
   Widget? bottomAction,
+  double? itemEstimatedHeight,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -241,10 +285,8 @@ Future<void> showSettingsBottomSheet({
     backgroundColor: Colors.transparent,
     builder: (ctx) => SettingsBottomSheet(
       title: title,
-      initialChildSize: initialChildSize,
-      minChildSize: minChildSize,
-      maxChildSize: maxChildSize,
       bottomAction: bottomAction,
+      itemEstimatedHeight: itemEstimatedHeight ?? 72.0,
       children: children,
     ),
   );
