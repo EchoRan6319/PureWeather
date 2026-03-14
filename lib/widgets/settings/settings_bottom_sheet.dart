@@ -211,7 +211,7 @@ class SettingsSelectionItem extends StatelessWidget {
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(
@@ -222,27 +222,28 @@ class SettingsSelectionItem extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: SizedBox(
-                    height: 44, // 固定高度确保所有选项高度一致
+                    height: 48, // 固定高度确保所有选项高度一致
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: hasSubtitle
-                          ? MainAxisAlignment.spaceBetween
-                          : MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           title,
                           style: textTheme.bodyLarge?.copyWith(
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                             color: titleColor,
-                            height: 1.2,
+                            height: 1.0,
                           ),
                         ),
                         if (hasSubtitle)
-                          Text(
-                            subtitle!,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: subtitleColor,
-                              height: 1.2,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              subtitle!,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: subtitleColor,
+                                height: 1.0,
+                              ),
                             ),
                           )
                         else

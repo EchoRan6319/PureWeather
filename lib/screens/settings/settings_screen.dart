@@ -938,7 +938,7 @@ class SettingsScreen extends ConsumerWidget {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => SettingsBottomSheet(
-        title: '位置显示',
+        title: '位置显示精度',
         children: options.map((option) {
           return SettingsSelectionItem(
             title: option.$2,
