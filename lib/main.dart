@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'core/theme/app_theme.dart';
+import 'core/constants/app_constants.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/scheduled_broadcast_provider.dart';
@@ -15,6 +16,9 @@ import 'services/scheduled_broadcast_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化应用版本号（从包信息获取）
+  await AppConstants.initialize();
 
   try {
     await dotenv.load(fileName: ".env");

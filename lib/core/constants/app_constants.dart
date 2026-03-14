@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// 应用常量类
 /// 包含应用的基本配置和常量
@@ -6,8 +7,21 @@ class AppConstants {
   /// 应用名称
   static const String appName = '轻氧天气';
 
-  /// 应用版本号
-  static const String appVersion = '4.1.0-3';
+  /// 应用版本号（从包信息动态获取）
+  static String _appVersion = '4.1.0-3';
+  static String get appVersion => _appVersion;
+
+  /// 初始化应用版本号
+  /// 在应用启动时调用，从 package_info_plus 获取实际版本号
+  static Future<void> initialize() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _appVersion = packageInfo.version;
+    } catch (e) {
+      // 如果获取失败，使用默认版本号
+      _appVersion = '4.1.0-3';
+    }
+  }
 
   /// API 请求超时时间
   static const Duration apiTimeout = Duration(seconds: 15);
