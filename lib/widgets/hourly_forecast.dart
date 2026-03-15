@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../models/weather_models.dart';
@@ -33,13 +34,21 @@ class HourlyForecast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (hourly.isEmpty) return const SizedBox.shrink();
+    if (hourly.isEmpty) {
+      return _buildEmptyState(context);
+    }
 
     final now = DateTime.now();
     // 过滤出未来24小时的数据
     final filteredHourly = _filterHourlyData(hourly, now);
 
-    if (filteredHourly.isEmpty) return const SizedBox.shrink();
+    if (kDebugMode) {
+      debugPrint('[HourlyCard] input=${hourly.length} filtered=${filteredHourly.length} now=$now');
+    }
+
+    if (filteredHourly.isEmpty) {
+      return _buildEmptyState(context, subtitle: '小时数据已过期或时间解析失败');
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -54,6 +63,43 @@ class HourlyForecast extends StatelessWidget {
             _buildHeader(context),
             const SizedBox(height: 10),
             _buildHourlyList(context, filteredHourly, now),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, {String subtitle = '暂无小时预报数据'}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -170,10 +216,14 @@ class HourlyForecast extends StatelessWidget {
     final endHour = nextHour.add(const Duration(hours: 24));
 
     final result = <HourlyWeather>[];
+    var invalidTimeCount = 0;
 
     for (final h in hourly) {
       final hourTime = DateTime.tryParse(h.fxTime);
-      if (hourTime == null) continue;
+      if (hourTime == null) {
+        invalidTimeCount++;
+        continue;
+      }
 
       final localHourTime = hourTime.toLocal();
       final compareTime = DateTime(
@@ -197,6 +247,12 @@ class HourlyForecast extends StatelessWidget {
       final timeB = DateTime.tryParse(b.fxTime) ?? DateTime(2000);
       return timeA.compareTo(timeB);
     });
+
+    if (kDebugMode) {
+      debugPrint(
+        '[HourlyFilter] nextHour=$nextHour endHour=$endHour invalidFxTime=$invalidTimeCount kept=${result.length}',
+      );
+    }
 
     return result;
   }

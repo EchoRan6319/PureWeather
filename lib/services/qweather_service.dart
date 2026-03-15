@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/api_config.dart';
 import '../models/weather_models.dart';
@@ -221,12 +222,22 @@ class QWeatherService {
       final data = response.data;
       
       if (data['code'] == '200' && data['hourly'] != null) {
-        return (data['hourly'] as List)
+        final hourlyList = (data['hourly'] as List)
             .map((e) => HourlyWeather.fromJson(e))
             .toList();
+        if (kDebugMode) {
+          debugPrint('[Hourly] location=$locationId code=200 count=${hourlyList.length}');
+        }
+        return hourlyList;
+      }
+      if (kDebugMode) {
+        debugPrint('[Hourly] location=$locationId code=${data['code']} hourlyNull=${data['hourly'] == null}');
       }
       return [];
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[Hourly] location=$locationId exception=$e');
+      }
       rethrow;
     }
   }

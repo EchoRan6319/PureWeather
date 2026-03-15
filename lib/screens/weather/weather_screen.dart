@@ -419,6 +419,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
 
     final settings = ref.watch(settingsProvider);
     final order = settings.weatherCardOrder;
+    final normalizedOrder = order.contains('hourly')
+        ? order
+        : ['hourly', ...order];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -436,7 +439,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             const SizedBox(height: 6),
           ],
           // 根据设置的顺序显示天气卡片
-          ...order.map((key) {
+          ...normalizedOrder.map((key) {
             Widget? card;
             switch (key) {
               case 'hourly':
