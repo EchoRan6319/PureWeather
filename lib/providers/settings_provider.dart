@@ -126,28 +126,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       accuracyLevel = LocationAccuracyLevel.street;
     }
 
-    // 加载天气卡片顺序
+    // 加载并修复天气卡片顺序
     final savedOrder = prefs.getStringList(_keyWeatherCardOrder);
-    
-    // 验证并修复天气卡片顺序
     const validOrder = ['hourly', 'daily', 'airQuality', 'details', 'indices'];
-    List<String> validatedOrder;
-    
-    if (savedOrder == null) {
-      validatedOrder = validOrder;
-    } else {
-      // 检查保存的顺序是否有效
-      final hasAllValidCards = savedOrder.every((card) => validOrder.contains(card));
-      final hasCorrectLength = savedOrder.length == validOrder.length;
-      
-      if (hasAllValidCards && hasCorrectLength) {
-        validatedOrder = savedOrder;
-      } else {
-        // 如果顺序无效，使用默认顺序
-        validatedOrder = validOrder;
-        // 保存修复后的顺序
-        await prefs.setStringList(_keyWeatherCardOrder, validatedOrder);
-      }
+    final validatedOrder = _normalizeCardOrder(savedOrder, validOrder);
+    if (savedOrder == null || !_listEquals(savedOrder, validatedOrder)) {
+      await prefs.setStringList(_keyWeatherCardOrder, validatedOrder);
     }
 
     // 更新状态
@@ -243,21 +227,42 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// 
   /// [value]: 天气卡片顺序
   Future<void> setWeatherCardOrder(List<String> value) async {
-    // 验证顺序是否有效
-    const validOrder = ['hourly', 'daily', 'airQuality', 'details'];
-    final hasAllValidCards = value.every((card) => validOrder.contains(card));
-    final hasCorrectLength = value.length == validOrder.length;
-    
-    List<String> validatedOrder;
-    if (hasAllValidCards && hasCorrectLength) {
-      validatedOrder = value;
-    } else {
-      validatedOrder = validOrder;
-    }
+    // 验证并自动补全缺失卡片
+    const validOrder = ['hourly', 'daily', 'airQuality', 'details', 'indices'];
+    final validatedOrder = _normalizeCardOrder(value, validOrder);
     
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_keyWeatherCardOrder, validatedOrder);
     state = state.copyWith(weatherCardOrder: validatedOrder);
+  }
+
+  List<String> _normalizeCardOrder(List<String>? savedOrder, List<String> validOrder) {
+    if (savedOrder == null || savedOrder.isEmpty) return List<String>.from(validOrder);
+
+    final seen = <String>{};
+    final normalized = <String>[];
+    for (final card in savedOrder) {
+      if (validOrder.contains(card) && !seen.contains(card)) {
+        normalized.add(card);
+        seen.add(card);
+      }
+    }
+
+    for (final card in validOrder) {
+      if (!seen.contains(card)) {
+        normalized.add(card);
+      }
+    }
+
+    return normalized;
+  }
+
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }
 

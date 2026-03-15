@@ -6,21 +6,26 @@ import '../../providers/settings_provider.dart';
 /// 天气卡片排序页面
 ///
 /// 遵循 Material You 设计规范，提供统一的视觉风格和交互体验
-class CardOrderScreen extends ConsumerStatefulWidget {
-  const CardOrderScreen({super.key});
-
+class CardOrderScreen {
   static void show(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CardOrderScreen()),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _CardOrderBottomSheet(),
     );
   }
-
-  @override
-  ConsumerState<CardOrderScreen> createState() => _CardOrderScreenState();
 }
 
-class _CardOrderScreenState extends ConsumerState<CardOrderScreen> {
+class _CardOrderBottomSheet extends ConsumerStatefulWidget {
+  const _CardOrderBottomSheet();
+
+  @override
+  ConsumerState<_CardOrderBottomSheet> createState() => _CardOrderBottomSheetState();
+}
+
+class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
   late List<String> _currentOrder;
 
   final Map<String, ({String title, IconData icon, String description})> _cardInfo = {
@@ -74,98 +79,151 @@ class _CardOrderScreenState extends ConsumerState<CardOrderScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('天气卡片排序'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.restore_outlined),
-            onPressed: () {
-              setState(() {
-                _currentOrder = ['hourly', 'daily', 'airQuality', 'details', 'indices'];
-              });
-              ref.read(settingsProvider.notifier).setWeatherCardOrder(_currentOrder);
-            },
-            tooltip: '恢复默认',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // 说明卡片
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(16),
-              ),
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHandle(context),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 20,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '按住并拖动卡片右侧的图标，调整它们在天气详情页中的显示顺序。',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      '天气卡片排序',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
                       ),
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.restore_outlined),
+                    tooltip: '恢复默认',
+                    onPressed: () {
+                      setState(() {
+                        _currentOrder = [
+                          'hourly',
+                          'daily',
+                          'airQuality',
+                          'details',
+                          'indices',
+                        ];
+                      });
+                      ref.read(settingsProvider.notifier).setWeatherCardOrder(_currentOrder);
+                    },
                   ),
                 ],
               ),
             ),
-          ),
-          // 卡片列表
-          Expanded(
-            child: ReorderableListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: _currentOrder.length,
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = _currentOrder.removeAt(oldIndex);
-                  _currentOrder.insert(newIndex, item);
-                });
-                ref.read(settingsProvider.notifier).setWeatherCardOrder(_currentOrder);
-              },
-              proxyDecorator: (child, index, animation) {
-                return AnimatedBuilder(
-                  animation: animation,
-                  builder: (context, child) {
-                    // 使用透明背景，移除阴影和白色背景
-                    return Material(
-                      elevation: 0,
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(16),
-                      child: child,
-                    );
-                  },
-                  child: child,
-                );
-              },
-              itemBuilder: (context, index) {
-                final key = _currentOrder[index];
-                final info = _cardInfo[key]!;
-
-                return _ReorderableCardItem(
-                  key: ValueKey(key),
-                  index: index,
-                  title: info.title,
-                  description: info.description,
-                  icon: info.icon,
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 20,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '按住并拖动卡片右侧的图标，调整它们在天气详情页中的显示顺序。',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Flexible(
+              child: ReorderableListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: _currentOrder.length,
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
+                    }
+                    final item = _currentOrder.removeAt(oldIndex);
+                    _currentOrder.insert(newIndex, item);
+                  });
+                  ref.read(settingsProvider.notifier).setWeatherCardOrder(_currentOrder);
+                },
+                proxyDecorator: (child, index, animation) {
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (context, child) {
+                      return Material(
+                        elevation: 0,
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        child: child,
+                      );
+                    },
+                    child: child,
+                  );
+                },
+                itemBuilder: (context, index) {
+                  final key = _currentOrder[index];
+                  final info = _cardInfo[key]!;
+
+                  return _ReorderableCardItem(
+                    key: ValueKey(key),
+                    index: index,
+                    title: info.title,
+                    description: info.description,
+                    icon: info.icon,
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('完成'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHandle(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ),
     );
   }

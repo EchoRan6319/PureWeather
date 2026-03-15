@@ -428,15 +428,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 天气预警
+          // 天气预警（固定位置，不参与排序）
           if (weather.hasAlerts) ...[
-            WeatherAlertCard(alerts: weather.alerts),
-            const SizedBox(height: 6),
+            _buildAlertSlot(weather),
+            const SizedBox(height: 12),
           ],
           // 降雨预测
           if (state.minuteRain != null && state.minuteRain!.willRain) ...[
             _buildRainPrediction(state.minuteRain!),
-            const SizedBox(height: 6),
+            const SizedBox(height: 12),
           ],
           // 根据设置的顺序显示天气卡片
           ...normalizedOrder.map((key) {
@@ -488,7 +488,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             if (card == null) return const SizedBox.shrink();
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: 12),
               child: card,
             );
           }),
@@ -530,6 +530,11 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         ),
       ),
     );
+  }
+
+  /// 构建天气预警卡片（固定位置）
+  Widget _buildAlertSlot(WeatherData weather) {
+    return WeatherAlertCard(alerts: weather.alerts);
   }
 
   /// 构建天气详情卡片
