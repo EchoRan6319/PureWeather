@@ -1,6 +1,7 @@
 # 轻氧天气 (Pure Weather)
 
 一款使用 Flutter 和 Material You Design 构建的现代化跨平台天气应用。
+（100%AI生成代码，绝无手写，性能烂的一批，没见过💩的一定要试试）
 
 ## 预览
 
