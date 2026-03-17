@@ -22,37 +22,39 @@ class _CardOrderBottomSheet extends ConsumerStatefulWidget {
   const _CardOrderBottomSheet();
 
   @override
-  ConsumerState<_CardOrderBottomSheet> createState() => _CardOrderBottomSheetState();
+  ConsumerState<_CardOrderBottomSheet> createState() =>
+      _CardOrderBottomSheetState();
 }
 
 class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
   late List<String> _currentOrder;
 
-  final Map<String, ({String title, IconData icon, String description})> _cardInfo = {
+  final Map<String, ({String title, IconData icon, String description})>
+  _cardInfo = {
     'hourly': (
       title: '24小时预报',
       icon: Icons.schedule_outlined,
-      description: '显示未来24小时的天气变化趋势'
+      description: '显示未来24小时的天气变化趋势',
     ),
     'daily': (
       title: '7天预报',
       icon: Icons.calendar_month_outlined,
-      description: '显示未来7天的天气概况'
+      description: '显示未来7天的天气概况',
     ),
     'airQuality': (
       title: '空气质量',
       icon: Icons.air_outlined,
-      description: '显示当前空气质量指数和污染物信息'
+      description: '显示当前空气质量指数和污染物信息',
     ),
     'details': (
       title: '详细信息',
       icon: Icons.info_outline,
-      description: '显示湿度、气压、能见度等详细数据'
+      description: '显示湿度、气压、能见度等详细数据',
     ),
     'indices': (
       title: '生活指数',
       icon: Icons.tips_and_updates_outlined,
-      description: '显示穿衣、运动、洗车等生活建议'
+      description: '显示穿衣、运动、洗车等生活建议',
     ),
   };
 
@@ -64,7 +66,9 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
     final savedOrder = ref.read(settingsProvider).weatherCardOrder;
 
     // 验证顺序
-    final hasAllValidCards = savedOrder.every((card) => validOrder.contains(card));
+    final hasAllValidCards = savedOrder.every(
+      (card) => validOrder.contains(card),
+    );
     final hasCorrectLength = savedOrder.length == validOrder.length;
 
     if (hasAllValidCards && hasCorrectLength) {
@@ -122,7 +126,9 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                               'indices',
                             ];
                           });
-                          ref.read(settingsProvider.notifier).setWeatherCardOrder(_currentOrder);
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setWeatherCardOrder(_currentOrder);
                         },
                       ),
                     ),
@@ -160,9 +166,16 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Flexible(
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.55,
+              ),
               child: ReorderableListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: _currentOrder.length,
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
@@ -172,7 +185,9 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                     final item = _currentOrder.removeAt(oldIndex);
                     _currentOrder.insert(newIndex, item);
                   });
-                  ref.read(settingsProvider.notifier).setWeatherCardOrder(_currentOrder);
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setWeatherCardOrder(_currentOrder);
                 },
                 proxyDecorator: (child, index, animation) {
                   return AnimatedBuilder(
