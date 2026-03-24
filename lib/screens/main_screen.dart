@@ -226,6 +226,16 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           }
         });
       }
+
+      // 处理 Android 实时更新通知开关变化
+      if (previous.androidLiveUpdateNotificationEnabled !=
+          next.androidLiveUpdateNotificationEnabled) {
+        ref
+            .read(weatherProvider.notifier)
+            .syncAndroidLiveUpdateNotificationWithSettings(
+              scene: 'settings_changed',
+            );
+      }
     });
 
     return Scaffold(

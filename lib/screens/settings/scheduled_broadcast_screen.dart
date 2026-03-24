@@ -55,7 +55,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '设置每日定时推送天气信息，仅支持当前定位所在地',
+              '设置每日定时推送天气信息。Android 16+ 将优先尝试实时更新通知，不满足条件时自动回退普通通知。',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -79,7 +79,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         SettingsSwitchTile(
           icon: Icons.notifications_active_outlined,
           title: '启用定时播报',
-          subtitle: '开启后将在设定时间推送天气信息',
+          subtitle: '开启后将在设定时间推送天气信息（优先实时更新）',
           value: settings.enabled,
           onChanged: (value) async {
             if (value) {

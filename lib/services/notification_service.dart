@@ -1,7 +1,21 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// 实时更新推送结果
+class LiveUpdatePostResult {
+  final bool success;
+  final String code;
+  final String message;
+
+  const LiveUpdatePostResult({
+    required this.success,
+    required this.code,
+    required this.message,
+  });
+}
 
 /// 通知服务类，用于管理应用的本地通知
 class NotificationService {
@@ -17,6 +31,11 @@ class NotificationService {
   /// Flutter本地通知插件实例
   final FlutterLocalNotificationsPlugin notifications =
       FlutterLocalNotificationsPlugin();
+
+  /// Android 实时更新通知 MethodChannel
+  static const MethodChannel _liveUpdateChannel = MethodChannel(
+    'com.echoran.pureweather/live_update',
+  );
 
   /// 是否已初始化
   bool _isInitialized = false;
@@ -48,13 +67,17 @@ class NotificationService {
     }
     if (_isInitialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    const linuxSettings = LinuxInitializationSettings(defaultActionName: 'Open');
+    const linuxSettings = LinuxInitializationSettings(
+      defaultActionName: 'Open',
+    );
 
     const initSettings = InitializationSettings(
       android: androidSettings,
@@ -87,11 +110,12 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >();
-      
+
       // 请求精准闹钟权限（Android 12+）
-      final canScheduleExact = await plugin?.requestExactAlarmsPermission() ?? false;
+      final canScheduleExact =
+          await plugin?.requestExactAlarmsPermission() ?? false;
       debugPrint('[Notification] Can schedule exact alarms: $canScheduleExact');
-      
+
       // 请求通知权限（Android 13+）
       final isGranted = await plugin?.requestNotificationsPermission() ?? false;
       return isGranted;
@@ -272,6 +296,194 @@ class NotificationService {
           enableVibration: true,
         ),
       );
+    }
+  }
+
+  /// 检查 Android 实时更新通知是否受支持（Android 16+）
+  Future<bool> isAndroidLiveUpdateSupported() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return false;
+    }
+    try {
+      final supported = await _liveUpdateChannel.invokeMethod<bool>(
+        'isSupported',
+      );
+      return supported ?? false;
+    } catch (e) {
+      debugPrint('[LiveUpdate] Support check failed: $e');
+      return false;
+    }
+  }
+
+  /// 是否允许发布 promoted 实时更新通知（Android 16+）
+  Future<bool> canPostPromotedNotifications() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return false;
+    }
+    try {
+      final allowed = await _liveUpdateChannel.invokeMethod<bool>(
+        'canPostPromotedNotifications',
+      );
+      return allowed ?? false;
+    } catch (e) {
+      debugPrint('[LiveUpdate] canPostPromotedNotifications failed: $e');
+      return false;
+    }
+  }
+
+  /// 打开 promoted 实时更新通知系统设置页（Android 16+）
+  Future<bool> openPromotedNotificationSettings() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return false;
+    }
+    try {
+      final opened = await _liveUpdateChannel.invokeMethod<bool>(
+        'openPromotedNotificationSettings',
+      );
+      return opened ?? false;
+    } catch (e) {
+      debugPrint('[LiveUpdate] openPromotedNotificationSettings failed: $e');
+      return false;
+    }
+  }
+
+  /// 显示/更新 Android 实时更新通知
+  Future<LiveUpdatePostResult> showAndroidLiveWeatherUpdateDetailed({
+    required String title,
+    required String content,
+  }) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const LiveUpdatePostResult(
+        success: false,
+        code: 'NON_ANDROID_PLATFORM',
+        message: '当前平台不是 Android',
+      );
+    }
+    if (!await checkNotificationPermission()) {
+      return const LiveUpdatePostResult(
+        success: false,
+        code: 'NOTIFICATION_PERMISSION_DENIED',
+        message: '未授予通知权限',
+      );
+    }
+    try {
+      final raw = await _liveUpdateChannel.invokeMethod<dynamic>(
+        'showWeatherLiveUpdate',
+        {'title': title, 'content': content},
+      );
+
+      if (raw is Map) {
+        final success = raw['success'] == true;
+        final code = (raw['code'] ?? (success ? 'POSTED' : 'UNKNOWN_FAILURE'))
+            .toString();
+        final message = (raw['message'] ?? '').toString();
+        return LiveUpdatePostResult(
+          success: success,
+          code: code,
+          message: message,
+        );
+      }
+
+      final success = raw == true;
+      return LiveUpdatePostResult(
+        success: success,
+        code: success ? 'POSTED' : 'UNKNOWN_FAILURE',
+        message: success ? '实时更新通知发送成功' : '实时更新通知发送失败',
+      );
+    } catch (e) {
+      debugPrint('[LiveUpdate] Show failed: $e');
+      return LiveUpdatePostResult(
+        success: false,
+        code: 'CHANNEL_EXCEPTION',
+        message: '通道调用异常: $e',
+      );
+    }
+  }
+
+  /// 显示/更新 Android 实时更新通知
+  Future<bool> showAndroidLiveWeatherUpdate({
+    required String title,
+    required String content,
+  }) async {
+    final result = await showAndroidLiveWeatherUpdateDetailed(
+      title: title,
+      content: content,
+    );
+    return result.success;
+  }
+
+  /// 调度 Android 实时更新通知（到指定时间触发）
+  Future<LiveUpdatePostResult> scheduleAndroidLiveWeatherUpdate({
+    required int id,
+    required DateTime triggerAt,
+    required String title,
+    required String content,
+  }) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const LiveUpdatePostResult(
+        success: false,
+        code: 'NON_ANDROID_PLATFORM',
+        message: '当前平台不是 Android',
+      );
+    }
+    try {
+      final raw = await _liveUpdateChannel
+          .invokeMethod<dynamic>('scheduleLiveUpdate', {
+            'id': id,
+            'triggerAtMillis': triggerAt.millisecondsSinceEpoch,
+            'title': title,
+            'content': content,
+          });
+
+      if (raw is Map) {
+        final success = raw['success'] == true;
+        final code =
+            (raw['code'] ?? (success ? 'SCHEDULED' : 'UNKNOWN_FAILURE'))
+                .toString();
+        final message = (raw['message'] ?? '').toString();
+        return LiveUpdatePostResult(
+          success: success,
+          code: code,
+          message: message,
+        );
+      }
+      return const LiveUpdatePostResult(
+        success: false,
+        code: 'INVALID_NATIVE_RESPONSE',
+        message: '原生返回结果格式无效',
+      );
+    } catch (e) {
+      return LiveUpdatePostResult(
+        success: false,
+        code: 'CHANNEL_EXCEPTION',
+        message: '调度实时更新通知异常: $e',
+      );
+    }
+  }
+
+  /// 取消已调度的 Android 实时更新通知
+  Future<void> cancelScheduledAndroidLiveWeatherUpdate(int id) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+    try {
+      await _liveUpdateChannel.invokeMethod<bool>('cancelScheduledLiveUpdate', {
+        'id': id,
+      });
+    } catch (e) {
+      debugPrint('[LiveUpdate] cancelScheduledLiveUpdate failed: $e');
+    }
+  }
+
+  /// 取消 Android 实时更新通知
+  Future<void> cancelAndroidLiveWeatherUpdate() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+    try {
+      await _liveUpdateChannel.invokeMethod<void>('cancelWeatherLiveUpdate');
+    } catch (e) {
+      debugPrint('[LiveUpdate] Cancel failed: $e');
     }
   }
 }

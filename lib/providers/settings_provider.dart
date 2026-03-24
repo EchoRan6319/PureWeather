@@ -2,31 +2,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 位置精度级别枚举
-/// 
+///
 /// - district: 区县级别
 /// - street: 街道级别
 enum LocationAccuracyLevel { district, street }
 
 /// 应用设置类
-/// 
+///
 /// 管理应用的所有设置选项
 class AppSettings {
   /// 是否启用预测性返回
   final bool predictiveBackEnabled;
+
   /// 是否启用通知
   final bool notificationsEnabled;
+
+  /// 是否启用 Android 实时更新通知
+  final bool androidLiveUpdateNotificationEnabled;
+
   /// 是否启用自动刷新
   final bool autoRefreshEnabled;
+
   /// 刷新间隔（分钟）
   final int refreshInterval;
+
   /// 温度单位
   final String temperatureUnit;
+
   /// 是否显示体感温度
   final bool showFeelsLike;
+
   /// 是否显示天气助手
   final bool showAIAssistant;
+
   /// 位置精度级别
   final LocationAccuracyLevel locationAccuracyLevel;
+
   /// 天气卡片顺序
   final List<String> weatherCardOrder;
 
@@ -34,6 +45,7 @@ class AppSettings {
   const AppSettings({
     this.predictiveBackEnabled = false,
     this.notificationsEnabled = true,
+    this.androidLiveUpdateNotificationEnabled = false,
     this.autoRefreshEnabled = true,
     this.refreshInterval = 30,
     this.temperatureUnit = 'celsius',
@@ -50,9 +62,10 @@ class AppSettings {
   });
 
   /// 复制并更新设置
-  /// 
+  ///
   /// [predictiveBackEnabled]: 是否启用预测性返回
   /// [notificationsEnabled]: 是否启用通知
+  /// [androidLiveUpdateNotificationEnabled]: 是否启用 Android 实时更新通知
   /// [autoRefreshEnabled]: 是否启用自动刷新
   /// [refreshInterval]: 刷新间隔
   /// [temperatureUnit]: 温度单位
@@ -63,6 +76,7 @@ class AppSettings {
   AppSettings copyWith({
     bool? predictiveBackEnabled,
     bool? notificationsEnabled,
+    bool? androidLiveUpdateNotificationEnabled,
     bool? autoRefreshEnabled,
     int? refreshInterval,
     String? temperatureUnit,
@@ -75,6 +89,9 @@ class AppSettings {
       predictiveBackEnabled:
           predictiveBackEnabled ?? this.predictiveBackEnabled,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      androidLiveUpdateNotificationEnabled:
+          androidLiveUpdateNotificationEnabled ??
+          this.androidLiveUpdateNotificationEnabled,
       autoRefreshEnabled: autoRefreshEnabled ?? this.autoRefreshEnabled,
       refreshInterval: refreshInterval ?? this.refreshInterval,
       temperatureUnit: temperatureUnit ?? this.temperatureUnit,
@@ -88,25 +105,37 @@ class AppSettings {
 }
 
 /// 设置状态管理类
-/// 
+///
 /// 负责管理应用设置的加载、保存和更新
 class SettingsNotifier extends StateNotifier<AppSettings> {
   /// 预测性返回设置键
   static const String _keyPredictiveBack = 'predictive_back_enabled';
+
   /// 通知设置键
   static const String _keyNotifications = 'notifications_enabled';
+
+  /// Android 实时更新通知设置键
+  static const String _keyAndroidLiveUpdateNotification =
+      'android_live_update_notification_enabled';
+
   /// 自动刷新设置键
   static const String _keyAutoRefresh = 'auto_refresh_enabled';
+
   /// 刷新间隔设置键
   static const String _keyRefreshInterval = 'refresh_interval';
+
   /// 温度单位设置键
   static const String _keyTemperatureUnit = 'temperature_unit';
+
   /// 显示体感温度设置键
   static const String _keyShowFeelsLike = 'show_feels_like';
+
   /// 显示天气助手设置键
   static const String _keyShowAIAssistant = 'show_ai_assistant';
+
   /// 位置精度级别设置键
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
+
   /// 天气卡片顺序设置键
   static const String _keyWeatherCardOrder = 'weather_card_order';
 
@@ -138,6 +167,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = AppSettings(
       predictiveBackEnabled: prefs.getBool(_keyPredictiveBack) ?? false,
       notificationsEnabled: prefs.getBool(_keyNotifications) ?? true,
+      androidLiveUpdateNotificationEnabled:
+          prefs.getBool(_keyAndroidLiveUpdateNotification) ?? false,
       autoRefreshEnabled: prefs.getBool(_keyAutoRefresh) ?? true,
       refreshInterval: prefs.getInt(_keyRefreshInterval) ?? 30,
       temperatureUnit: prefs.getString(_keyTemperatureUnit) ?? 'celsius',
@@ -149,7 +180,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置是否启用预测性返回
-  /// 
+  ///
   /// [value]: 是否启用
   Future<void> setPredictiveBackEnabled(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -158,7 +189,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置是否启用通知
-  /// 
+  ///
   /// [value]: 是否启用
   Future<void> setNotificationsEnabled(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -166,8 +197,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(notificationsEnabled: value);
   }
 
+  /// 设置是否启用 Android 实时更新通知
+  ///
+  /// [value]: 是否启用
+  Future<void> setAndroidLiveUpdateNotificationEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyAndroidLiveUpdateNotification, value);
+    state = state.copyWith(androidLiveUpdateNotificationEnabled: value);
+  }
+
   /// 设置是否启用自动刷新
-  /// 
+  ///
   /// [value]: 是否启用
   Future<void> setAutoRefreshEnabled(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -176,7 +216,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置刷新间隔
-  /// 
+  ///
   /// [value]: 刷新间隔（分钟）
   Future<void> setRefreshInterval(int value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -185,7 +225,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置温度单位
-  /// 
+  ///
   /// [value]: 温度单位
   Future<void> setTemperatureUnit(String value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -194,7 +234,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置是否显示体感温度
-  /// 
+  ///
   /// [value]: 是否显示
   Future<void> setShowFeelsLike(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -203,7 +243,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置是否显示天气助手
-  /// 
+  ///
   /// [value]: 是否显示
   Future<void> setShowAIAssistant(bool value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -212,7 +252,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置位置精度级别
-  /// 
+  ///
   /// [value]: 位置精度级别
   Future<void> setLocationAccuracyLevel(LocationAccuracyLevel value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -224,20 +264,25 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// 设置天气卡片顺序
-  /// 
+  ///
   /// [value]: 天气卡片顺序
   Future<void> setWeatherCardOrder(List<String> value) async {
     // 验证并自动补全缺失卡片
     const validOrder = ['hourly', 'daily', 'airQuality', 'details', 'indices'];
     final validatedOrder = _normalizeCardOrder(value, validOrder);
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_keyWeatherCardOrder, validatedOrder);
     state = state.copyWith(weatherCardOrder: validatedOrder);
   }
 
-  List<String> _normalizeCardOrder(List<String>? savedOrder, List<String> validOrder) {
-    if (savedOrder == null || savedOrder.isEmpty) return List<String>.from(validOrder);
+  List<String> _normalizeCardOrder(
+    List<String>? savedOrder,
+    List<String> validOrder,
+  ) {
+    if (savedOrder == null || savedOrder.isEmpty) {
+      return List<String>.from(validOrder);
+    }
 
     final seen = <String>{};
     final normalized = <String>[];
@@ -267,7 +312,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 }
 
 /// 设置Provider
-/// 
+///
 /// 提供应用设置的状态管理
 final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((
   ref,

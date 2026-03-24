@@ -9,8 +9,10 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'dart:ui';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/weather_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/notification_service.dart';
+import '../../services/live_update_diagnostics_service.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/settings/settings.dart';
 import '../../core/constants/app_constants.dart';
@@ -139,6 +141,102 @@ class SettingsScreen extends ConsumerWidget {
                                       .setNotificationsEnabled(value);
                                 },
                               ),
+                              if (!kIsWeb &&
+                                  defaultTargetPlatform ==
+                                      TargetPlatform.android)
+                                SettingsSwitchTile(
+                                  icon: Icons.update_rounded,
+                                  title: '实时更新通知',
+                                  subtitle: 'Android 16+ 在通知栏持续显示当前天气',
+                                  value: appSettings
+                                      .androidLiveUpdateNotificationEnabled,
+                                  onChanged: (value) async {
+                                    if (value) {
+                                      final hasPermission =
+                                          await notificationServiceProvider
+                                              .requestNotificationPermission();
+                                      if (!hasPermission) {
+                                        liveUpdateDiagnosticsService.record(
+                                          scene: 'settings_toggle',
+                                          success: false,
+                                          code:
+                                              'NOTIFICATION_PERMISSION_DENIED',
+                                          message: '未授予通知权限',
+                                          settingEnabled: true,
+                                          isAndroid: true,
+                                          notificationPermission: false,
+                                        );
+                                        if (context.mounted) {
+                                          _showPermissionDeniedDialog(context);
+                                        }
+                                        return;
+                                      }
+
+                                      final isSupported =
+                                          await notificationServiceProvider
+                                              .isAndroidLiveUpdateSupported();
+                                      if (!isSupported) {
+                                        liveUpdateDiagnosticsService.record(
+                                          scene: 'settings_toggle',
+                                          success: false,
+                                          code: 'ANDROID_VERSION_UNSUPPORTED',
+                                          message:
+                                              '当前系统不支持实时更新通知（需 Android 16+）',
+                                          settingEnabled: true,
+                                          isAndroid: true,
+                                          isSupported: false,
+                                        );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                '该功能仅支持 Android 16 及以上系统',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return;
+                                      }
+
+                                      final canPostPromoted =
+                                          await notificationServiceProvider
+                                              .canPostPromotedNotifications();
+                                      if (!canPostPromoted) {
+                                        liveUpdateDiagnosticsService.record(
+                                          scene: 'settings_toggle',
+                                          success: false,
+                                          code: 'PROMOTED_PERMISSION_DENIED',
+                                          message: '系统未允许应用发布 Promoted 实时更新通知',
+                                          settingEnabled: true,
+                                          isAndroid: true,
+                                          isSupported: true,
+                                          promotedPermission: false,
+                                        );
+                                        if (context.mounted) {
+                                          _showPromotedNotificationDisabledDialog(
+                                            context,
+                                          );
+                                        }
+                                        return;
+                                      }
+                                    }
+
+                                    await ref
+                                        .read(settingsProvider.notifier)
+                                        .setAndroidLiveUpdateNotificationEnabled(
+                                          value,
+                                        );
+                                    await ref
+                                        .read(weatherProvider.notifier)
+                                        .syncAndroidLiveUpdateNotificationWithSettings(
+                                          scene: value
+                                              ? 'settings_toggle_on'
+                                              : 'settings_toggle_off',
+                                        );
+                                  },
+                                ),
                               SettingsListTile(
                                 icon: Icons.schedule_outlined,
                                 title: '定时播报',
@@ -146,6 +244,17 @@ class SettingsScreen extends ConsumerWidget {
                                 onTap: () =>
                                     ScheduledBroadcastScreen.show(context, ref),
                               ),
+                              if (kDebugMode &&
+                                  !kIsWeb &&
+                                  defaultTargetPlatform ==
+                                      TargetPlatform.android)
+                                SettingsListTile(
+                                  icon: Icons.bug_report_outlined,
+                                  title: '实时更新诊断面板',
+                                  subtitle: '仅 Debug 版本可见，查看失败卡点',
+                                  onTap: () =>
+                                      _showLiveUpdateDiagnosticsPanel(context),
+                                ),
                             ],
                           ),
                           // 显示设置组
@@ -677,10 +786,7 @@ class SettingsScreen extends ConsumerWidget {
                 color: color,
                 shape: BoxShape.circle,
                 border: isSelected
-                    ? Border.all(
-                        color: tokens.selectedBorder,
-                        width: 2,
-                      )
+                    ? Border.all(color: tokens.selectedBorder, width: 2)
                     : null,
               ),
               child: isSelected
@@ -1082,6 +1188,280 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _showPromotedNotificationDisabledDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SettingsBottomSheet(
+        title: '需要开启实时更新权限',
+        bottomAction: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('取消'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  final opened = await notificationServiceProvider
+                      .openPromotedNotificationSettings();
+                  if (!opened && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('无法打开系统实时更新设置页')),
+                    );
+                  }
+                },
+                child: const Text('去开启'),
+              ),
+            ),
+          ],
+        ),
+        children: [
+          _BottomSheetTokenCard(
+            variant: _BottomSheetTokenCardVariant.danger,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.update_disabled_outlined,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '系统当前未允许应用发布实时更新（Promoted）通知。请先在系统页面开启，再返回打开本开关。',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLiveUpdateDiagnosticsPanel(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SettingsBottomSheet(
+        title: '实时更新诊断（Debug）',
+        bottomAction: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('关闭'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton(
+                onPressed: () {
+                  liveUpdateDiagnosticsService.clear();
+                },
+                child: const Text('清空记录'),
+              ),
+            ),
+          ],
+        ),
+        children: [
+          _BottomSheetTokenCard(
+            child: Text(
+              '每次尝试会记录：系统支持、通知权限、Promoted 权限、可推广特征等检查结果。',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          ValueListenableBuilder<List<LiveUpdateDiagnosticEntry>>(
+            valueListenable: liveUpdateDiagnosticsService.entries,
+            builder: (context, entries, _) {
+              if (entries.isEmpty) {
+                return _BottomSheetTokenCard(
+                  child: Text(
+                    '暂无诊断记录。触发一次实时更新后再回来查看。',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                children: entries.map((entry) {
+                  final statusColor = entry.success
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error;
+
+                  return _BottomSheetTokenCard(
+                    variant: entry.success
+                        ? _BottomSheetTokenCardVariant.normal
+                        : _BottomSheetTokenCardVariant.danger,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              entry.success
+                                  ? Icons.check_circle_outline
+                                  : Icons.error_outline,
+                              size: 18,
+                              color: statusColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '[${entry.scene}] ${entry.code}',
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                            Text(
+                              _formatDiagnosticTime(entry.timestamp),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          entry.message,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        if (entry.titlePreview != null &&
+                            entry.titlePreview!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            '标题预览：${entry.titlePreview}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            _buildDiagnosticFlag(
+                              context,
+                              '开关',
+                              entry.settingEnabled,
+                            ),
+                            _buildDiagnosticFlag(
+                              context,
+                              'Android',
+                              entry.isAndroid,
+                            ),
+                            _buildDiagnosticFlag(
+                              context,
+                              '有天气数据',
+                              entry.hasWeatherData,
+                            ),
+                            _buildDiagnosticFlag(
+                              context,
+                              '系统支持',
+                              entry.isSupported,
+                            ),
+                            _buildDiagnosticFlag(
+                              context,
+                              '通知权限',
+                              entry.notificationPermission,
+                            ),
+                            _buildDiagnosticFlag(
+                              context,
+                              'Promoted权限',
+                              entry.promotedPermission,
+                            ),
+                            _buildDiagnosticFlag(
+                              context,
+                              '可推广特征',
+                              entry.promotableCharacteristics,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiagnosticFlag(BuildContext context, String label, bool? value) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final (Color bgColor, Color textColor, String text) = switch (value) {
+      true => (
+        colorScheme.primaryContainer,
+        colorScheme.onPrimaryContainer,
+        '$label: ✓',
+      ),
+      false => (
+        colorScheme.errorContainer,
+        colorScheme.onErrorContainer,
+        '$label: ✗',
+      ),
+      null => (
+        colorScheme.surfaceContainerHighest,
+        colorScheme.onSurfaceVariant,
+        '$label: -',
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: textColor),
+      ),
+    );
+  }
+
+  String _formatDiagnosticTime(DateTime time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    final second = time.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second';
   }
 
   void _showAboutDialog(BuildContext context) {

@@ -9,6 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'qweather_service.dart';
 import 'notification_service.dart';
+import 'live_update_diagnostics_service.dart';
 import '../providers/city_repository.dart';
 import '../providers/scheduled_broadcast_provider.dart';
 import '../models/weather_models.dart';
@@ -167,16 +168,16 @@ class ScheduledBroadcastService {
     if (kIsWeb) {
       return;
     }
-    
+
     // 提前获取天气数据，将内容“硬编码”到系统调度中
     String body = '点击查看今日天气详情';
     try {
       final weatherData = await _fetchDefaultCityWeather();
       body = _buildMorningContent(weatherData, settings);
       if (body.isEmpty) body = '今日天气：${weatherData.current.text}';
-      
+
       // 如果是用缓存数据，加上标记
-      final isFromNetwork = await _isDataFresh(weatherData); 
+      final isFromNetwork = await _isDataFresh(weatherData);
       if (!isFromNetwork) body += ' (来自本地缓存)';
     } catch (e) {
       debugPrint('[ScheduledBroadcast] Morning pre-fetch failed: $e');
@@ -188,6 +189,22 @@ class ScheduledBroadcastService {
     );
 
     if (scheduledDate == null) return;
+
+    final scheduledAsLiveUpdate = await _tryScheduleLiveUpdateAt(
+      scene: 'scheduled_morning_plan',
+      id: _morningNotificationId,
+      triggerAt: DateTime.fromMillisecondsSinceEpoch(
+        scheduledDate.millisecondsSinceEpoch,
+      ),
+      title: '早安天气',
+      body: body,
+    );
+    if (scheduledAsLiveUpdate) {
+      debugPrint(
+        '[ScheduledBroadcast] Morning live update scheduled successfully',
+      );
+      return;
+    }
 
     debugPrint(
       '[ScheduledBroadcast] Scheduling morning broadcast for: $scheduledDate',
@@ -240,7 +257,7 @@ class ScheduledBroadcastService {
       final weatherData = await _fetchDefaultCityWeather();
       body = _buildEveningContent(weatherData, settings);
       if (body.isEmpty) body = '晚间预报：${weatherData.current.text}';
-      
+
       final isFromNetwork = await _isDataFresh(weatherData);
       if (!isFromNetwork) body += ' (来自本地缓存)';
     } catch (e) {
@@ -253,6 +270,22 @@ class ScheduledBroadcastService {
     );
 
     if (scheduledDate == null) return;
+
+    final scheduledAsLiveUpdate = await _tryScheduleLiveUpdateAt(
+      scene: 'scheduled_evening_plan',
+      id: _eveningNotificationId,
+      triggerAt: DateTime.fromMillisecondsSinceEpoch(
+        scheduledDate.millisecondsSinceEpoch,
+      ),
+      title: '晚间天气',
+      body: body,
+    );
+    if (scheduledAsLiveUpdate) {
+      debugPrint(
+        '[ScheduledBroadcast] Evening live update scheduled successfully',
+      );
+      return;
+    }
 
     debugPrint(
       '[ScheduledBroadcast] Scheduling evening broadcast for: $scheduledDate',
@@ -287,7 +320,9 @@ class ScheduledBroadcastService {
       final status = await Permission.ignoreBatteryOptimizations.status;
       debugPrint('[ScheduledBroadcast] Battery optimization status: $status');
       if (status.isDenied) {
-        debugPrint('[ScheduledBroadcast] App is battery restricted, notifications may be delayed.');
+        debugPrint(
+          '[ScheduledBroadcast] App is battery restricted, notifications may be delayed.',
+        );
       }
     }
   }
@@ -355,6 +390,12 @@ class ScheduledBroadcastService {
     }
     await _notifications.cancel(_morningNotificationId);
     await _notifications.cancel(_eveningNotificationId);
+    await notificationServiceProvider.cancelScheduledAndroidLiveWeatherUpdate(
+      _morningNotificationId,
+    );
+    await notificationServiceProvider.cancelScheduledAndroidLiveWeatherUpdate(
+      _eveningNotificationId,
+    );
     _lastCheckHour = -1; // 重置检查标记
   }
 
@@ -380,7 +421,9 @@ class ScheduledBroadcastService {
     if (settings.morningTime.enabled &&
         now.hour == settings.morningTime.hour &&
         now.minute >= settings.morningTime.minute) {
-      debugPrint('[ScheduledBroadcast] Pulse match: triggering morning broadcast');
+      debugPrint(
+        '[ScheduledBroadcast] Pulse match: triggering morning broadcast',
+      );
       _lastCheckHour = now.hour;
       await sendMorningBroadcast(settings);
     }
@@ -389,7 +432,9 @@ class ScheduledBroadcastService {
     if (settings.eveningTime.enabled &&
         now.hour == settings.eveningTime.hour &&
         now.minute >= settings.eveningTime.minute) {
-      debugPrint('[ScheduledBroadcast] Pulse match: triggering evening broadcast');
+      debugPrint(
+        '[ScheduledBroadcast] Pulse match: triggering evening broadcast',
+      );
       _lastCheckHour = now.hour;
       await sendEveningBroadcast(settings);
     }
@@ -405,19 +450,27 @@ class ScheduledBroadcastService {
 
       final title = '早上好 ☀️ ${weatherData.location.name}';
       String body = _buildMorningContent(weatherData, settings);
-      
+
       // 如果数据较旧，增加缓存标记
-      if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours > 1) {
+      if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours >
+          1) {
         body += '\n(来自本地缓存)';
       }
       debugPrint('[ScheduledBroadcast] Morning broadcast content: $body');
 
-      await notificationServiceProvider.showWeatherAlert(
-        id: _morningNotificationId,
+      final sentByLiveUpdate = await _trySendAsLiveUpdate(
+        scene: 'scheduled_morning',
         title: title,
         body: body,
-        payload: 'morning_broadcast',
       );
+      if (!sentByLiveUpdate) {
+        await notificationServiceProvider.showWeatherAlert(
+          id: _morningNotificationId,
+          title: title,
+          body: body,
+          payload: 'morning_broadcast',
+        );
+      }
       debugPrint('[ScheduledBroadcast] Morning broadcast sent successfully');
     } catch (e, stackTrace) {
       debugPrint('[ScheduledBroadcast] Error sending morning broadcast: $e');
@@ -439,19 +492,27 @@ class ScheduledBroadcastService {
 
       final title = '晚上好 🌙 ${weatherData.location.name}';
       String body = _buildEveningContent(weatherData, settings);
-      
+
       // 如果数据较旧，增加缓存标记
-      if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours > 1) {
+      if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours >
+          1) {
         body += '\n(来自本地缓存)';
       }
       debugPrint('[ScheduledBroadcast] Evening broadcast content: $body');
 
-      await notificationServiceProvider.showWeatherAlert(
-        id: _eveningNotificationId,
+      final sentByLiveUpdate = await _trySendAsLiveUpdate(
+        scene: 'scheduled_evening',
         title: title,
         body: body,
-        payload: 'evening_broadcast',
       );
+      if (!sentByLiveUpdate) {
+        await notificationServiceProvider.showWeatherAlert(
+          id: _eveningNotificationId,
+          title: title,
+          body: body,
+          payload: 'evening_broadcast',
+        );
+      }
       debugPrint('[ScheduledBroadcast] Evening broadcast sent successfully');
     } catch (e, stackTrace) {
       debugPrint('[ScheduledBroadcast] Error sending evening broadcast: $e');
@@ -490,10 +551,9 @@ class ScheduledBroadcastService {
 
     try {
       // 尝试获取最新的天气数据（带重试机制）
-      final weatherData = await _fetchWithRetry(() => _weatherService.getFullWeatherData(
-        defaultCity.id,
-        defaultCity,
-      ));
+      final weatherData = await _fetchWithRetry(
+        () => _weatherService.getFullWeatherData(defaultCity.id, defaultCity),
+      );
       debugPrint('[ScheduledBroadcast] Weather data retrieved successfully');
       return weatherData;
     } catch (e) {
@@ -504,19 +564,200 @@ class ScheduledBroadcastService {
         final jsonString = prefs.getString(key);
         if (jsonString != null) {
           final data = WeatherData.fromJson(jsonDecode(jsonString));
-          debugPrint('[ScheduledBroadcast] Fallback to cache for ${defaultCity.name}');
+          debugPrint(
+            '[ScheduledBroadcast] Fallback to cache for ${defaultCity.name}',
+          );
           return data;
         }
       } catch (cacheError) {
         debugPrint('[ScheduledBroadcast] Cache read failed: $cacheError');
       }
-      
+
       throw Exception('天气数据获取失败: $e');
     }
   }
 
+  Future<bool> _trySendAsLiveUpdate({
+    required String scene,
+    required String title,
+    required String body,
+  }) async {
+    final isAndroid =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    if (!isAndroid) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'NON_ANDROID_PLATFORM',
+        message: '定时播报实时更新仅支持 Android',
+        isAndroid: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final isSupported = await notificationServiceProvider
+        .isAndroidLiveUpdateSupported();
+    if (!isSupported) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'ANDROID_VERSION_UNSUPPORTED',
+        message: '当前系统不支持实时更新通知（需 Android 16+）',
+        isAndroid: true,
+        isSupported: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final hasPermission = await notificationServiceProvider
+        .checkNotificationPermission();
+    if (!hasPermission) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'NOTIFICATION_PERMISSION_DENIED',
+        message: '未授予通知权限',
+        isAndroid: true,
+        isSupported: true,
+        notificationPermission: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final canPromoted = await notificationServiceProvider
+        .canPostPromotedNotifications();
+    if (!canPromoted) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'PROMOTED_PERMISSION_DENIED',
+        message: '系统未允许应用发布 Promoted 实时更新通知',
+        isAndroid: true,
+        isSupported: true,
+        notificationPermission: true,
+        promotedPermission: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final result = await notificationServiceProvider
+        .showAndroidLiveWeatherUpdateDetailed(title: title, content: body);
+    liveUpdateDiagnosticsService.record(
+      scene: scene,
+      success: result.success,
+      code: result.code,
+      message: result.message,
+      isAndroid: true,
+      isSupported: true,
+      notificationPermission: true,
+      promotedPermission: true,
+      promotableCharacteristics: result.code == 'NOT_PROMOTABLE_CHARACTERISTICS'
+          ? false
+          : (result.success ? true : null),
+      titlePreview: title,
+    );
+    return result.success;
+  }
+
+  Future<bool> _tryScheduleLiveUpdateAt({
+    required String scene,
+    required int id,
+    required DateTime triggerAt,
+    required String title,
+    required String body,
+  }) async {
+    final isAndroid =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    if (!isAndroid) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'NON_ANDROID_PLATFORM',
+        message: '定时调度实时更新仅支持 Android',
+        isAndroid: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final isSupported = await notificationServiceProvider
+        .isAndroidLiveUpdateSupported();
+    if (!isSupported) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'ANDROID_VERSION_UNSUPPORTED',
+        message: '当前系统不支持实时更新通知（需 Android 16+）',
+        isAndroid: true,
+        isSupported: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final hasPermission = await notificationServiceProvider
+        .checkNotificationPermission();
+    if (!hasPermission) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'NOTIFICATION_PERMISSION_DENIED',
+        message: '未授予通知权限',
+        isAndroid: true,
+        isSupported: true,
+        notificationPermission: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final canPromoted = await notificationServiceProvider
+        .canPostPromotedNotifications();
+    if (!canPromoted) {
+      liveUpdateDiagnosticsService.record(
+        scene: scene,
+        success: false,
+        code: 'PROMOTED_PERMISSION_DENIED',
+        message: '系统未允许应用发布 Promoted 实时更新通知',
+        isAndroid: true,
+        isSupported: true,
+        notificationPermission: true,
+        promotedPermission: false,
+        titlePreview: title,
+      );
+      return false;
+    }
+
+    final result = await notificationServiceProvider
+        .scheduleAndroidLiveWeatherUpdate(
+          id: id,
+          triggerAt: triggerAt,
+          title: title,
+          content: body,
+        );
+    liveUpdateDiagnosticsService.record(
+      scene: scene,
+      success: result.success,
+      code: result.code,
+      message: result.message,
+      isAndroid: true,
+      isSupported: true,
+      notificationPermission: true,
+      promotedPermission: true,
+      titlePreview: title,
+    );
+    return result.success;
+  }
+
   /// 带重试机制的请求封装
-  Future<T> _fetchWithRetry<T>(Future<T> Function() task, {int retries = 3}) async {
+  Future<T> _fetchWithRetry<T>(
+    Future<T> Function() task, {
+    int retries = 3,
+  }) async {
     int attempts = 0;
     while (true) {
       try {
@@ -524,13 +765,16 @@ class ScheduledBroadcastService {
         return await task();
       } catch (e) {
         if (attempts >= retries) rethrow;
-        final isNetworkError = e is DioException && 
-            (e.type == DioExceptionType.connectionError || 
-             e.type == DioExceptionType.connectionTimeout);
-        
+        final isNetworkError =
+            e is DioException &&
+            (e.type == DioExceptionType.connectionError ||
+                e.type == DioExceptionType.connectionTimeout);
+
         if (!isNetworkError) rethrow; // 只有网络错误才重试
-        
-        debugPrint('[ScheduledBroadcast] Retry attempt $attempts after error: $e');
+
+        debugPrint(
+          '[ScheduledBroadcast] Retry attempt $attempts after error: $e',
+        );
         await Future.delayed(Duration(seconds: attempts * 2));
       }
     }
