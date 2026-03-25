@@ -466,9 +466,14 @@ class SettingsScreen extends ConsumerWidget {
     AppSettings settings,
   ) {
     final options = [
-      (AppLanguage.system, '默认跟随系统', Icons.smartphone_outlined),
-      (AppLanguage.zhCN, '简体中文', Icons.translate_outlined),
-      (AppLanguage.enUS, 'English (US)', Icons.language_outlined),
+      (AppLanguage.system, '默认跟随系统', '自动跟随系统语言', Icons.smartphone_outlined),
+      (AppLanguage.zhCN, '简体中文', '始终使用简体中文', Icons.translate_outlined),
+      (
+        AppLanguage.enUS,
+        'English (US)',
+        'Always use English (US)',
+        Icons.language_outlined,
+      ),
     ];
 
     showModalBottomSheet(
@@ -481,7 +486,8 @@ class SettingsScreen extends ConsumerWidget {
         children: options.map((option) {
           return SettingsSelectionItem(
             title: option.$2,
-            icon: option.$3,
+            subtitle: option.$3,
+            icon: option.$4,
             isSelected: settings.appLanguage == option.$1,
             onTap: () async {
               await ref
