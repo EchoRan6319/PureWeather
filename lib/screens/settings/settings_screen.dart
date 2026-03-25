@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'dart:ui';
+import '../../app_localizations.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/weather_provider.dart';
@@ -161,7 +162,7 @@ class SettingsScreen extends ConsumerWidget {
                                           success: false,
                                           code:
                                               'NOTIFICATION_PERMISSION_DENIED',
-                                          message: '未授予通知权限',
+                                          message: context.tr('未授予通知权限'),
                                           settingEnabled: true,
                                           isAndroid: true,
                                           notificationPermission: false,
@@ -180,8 +181,9 @@ class SettingsScreen extends ConsumerWidget {
                                           scene: 'settings_toggle',
                                           success: false,
                                           code: 'ANDROID_VERSION_UNSUPPORTED',
-                                          message:
-                                              '当前系统不支持实时更新通知（需 Android 16+）',
+                                          message: context.tr(
+                                            '当前系统不支持实时更新通知（需 Android 16+）',
+                                          ),
                                           settingEnabled: true,
                                           isAndroid: true,
                                           isSupported: false,
@@ -190,9 +192,11 @@ class SettingsScreen extends ConsumerWidget {
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(
-                                            const SnackBar(
+                                            SnackBar(
                                               content: Text(
-                                                '该功能仅支持 Android 16 及以上系统',
+                                                context.tr(
+                                                  '该功能仅支持 Android 16 及以上系统',
+                                                ),
                                               ),
                                             ),
                                           );
@@ -208,7 +212,9 @@ class SettingsScreen extends ConsumerWidget {
                                           scene: 'settings_toggle',
                                           success: false,
                                           code: 'PROMOTED_PERMISSION_DENIED',
-                                          message: '系统未允许应用发布 Promoted 实时更新通知',
+                                          message: context.tr(
+                                            '系统未允许应用发布 Promoted 实时更新通知',
+                                          ),
                                           settingEnabled: true,
                                           isAndroid: true,
                                           isSupported: true,
@@ -275,12 +281,24 @@ class SettingsScreen extends ConsumerWidget {
                                 },
                               ),
                               SettingsListTile(
+                                icon: Icons.language_outlined,
+                                title: '语言',
+                                subtitle: _getAppLanguageName(
+                                  appSettings.appLanguage,
+                                ),
+                                onTap: () => _showAppLanguageDialog(
+                                  context,
+                                  ref,
+                                  appSettings,
+                                ),
+                              ),
+                              SettingsListTile(
                                 icon: Icons.device_thermostat_outlined,
                                 title: '温度单位',
                                 subtitle:
                                     appSettings.temperatureUnit == 'celsius'
-                                    ? '摄氏度 (°C)'
-                                    : '华氏度 (°F)',
+                                    ? '${context.tr('摄氏度')} (°C)'
+                                    : '${context.tr('华氏度')} (°F)',
                                 onTap: () => _showTemperatureUnitDialog(
                                   context,
                                   ref,
@@ -318,8 +336,12 @@ class SettingsScreen extends ConsumerWidget {
                               SettingsSwitchTile(
                                 icon: Icons.autorenew_outlined,
                                 title: '自动刷新',
-                                subtitle:
-                                    '每 ${appSettings.refreshInterval} 分钟自动更新',
+                                subtitle: context.tr(
+                                  '每 {minutes} 分钟自动更新',
+                                  args: {
+                                    'minutes': appSettings.refreshInterval,
+                                  },
+                                ),
                                 value: appSettings.autoRefreshEnabled,
                                 onChanged: (value) {
                                   ref
@@ -330,7 +352,12 @@ class SettingsScreen extends ConsumerWidget {
                               SettingsListTile(
                                 icon: Icons.timer_outlined,
                                 title: '刷新间隔',
-                                subtitle: '${appSettings.refreshInterval} 分钟',
+                                subtitle: context.tr(
+                                  '{minutes} 分钟',
+                                  args: {
+                                    'minutes': appSettings.refreshInterval,
+                                  },
+                                ),
                                 onTap: () => _showRefreshIntervalDialog(
                                   context,
                                   ref,
@@ -393,7 +420,7 @@ class SettingsScreen extends ConsumerWidget {
         );
 
         return Scaffold(
-          appBar: AppBar(title: const Text('设置')),
+          appBar: AppBar(title: Text(context.tr('设置'))),
           body: scaffoldBody,
         );
       },
@@ -420,6 +447,54 @@ class SettingsScreen extends ConsumerWidget {
       case AppThemeMode.dark:
         return Icons.dark_mode_outlined;
     }
+  }
+
+  String _getAppLanguageName(AppLanguage language) {
+    switch (language) {
+      case AppLanguage.system:
+        return '默认跟随系统';
+      case AppLanguage.zhCN:
+        return '简体中文';
+      case AppLanguage.enUS:
+        return 'English (US)';
+    }
+  }
+
+  void _showAppLanguageDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    final options = [
+      (AppLanguage.system, '默认跟随系统', Icons.smartphone_outlined),
+      (AppLanguage.zhCN, '简体中文', Icons.translate_outlined),
+      (AppLanguage.enUS, 'English (US)', Icons.language_outlined),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SettingsBottomSheet(
+        title: '语言',
+        children: options.map((option) {
+          return SettingsSelectionItem(
+            title: option.$2,
+            icon: option.$3,
+            isSelected: settings.appLanguage == option.$1,
+            onTap: () async {
+              await ref
+                  .read(settingsProvider.notifier)
+                  .setAppLanguage(option.$1);
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+              }
+            },
+          );
+        }).toList(),
+      ),
+    );
   }
 
   void _showThemeModeDialog(
@@ -522,7 +597,7 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
-      title,
+      context.tr(title),
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
         color: Theme.of(context).colorScheme.primary,
         fontWeight: FontWeight.w600,
@@ -586,7 +661,7 @@ class SettingsScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '壁纸取色',
+                                context.tr('壁纸取色'),
                                 style: Theme.of(context).textTheme.bodyLarge
                                     ?.copyWith(
                                       fontWeight: FontWeight.w500,
@@ -599,7 +674,16 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '检测颜色: #${dynamicColor!.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                                context.tr(
+                                  '检测颜色: #{color}',
+                                  args: {
+                                    'color': dynamicColor!
+                                        .toARGB32()
+                                        .toRadixString(16)
+                                        .substring(2)
+                                        .toUpperCase(),
+                                  },
+                                ),
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: isCurrentDynamic
@@ -661,7 +745,7 @@ class SettingsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '壁纸取色',
+                          context.tr('壁纸取色'),
                           style: Theme.of(context).textTheme.bodyLarge
                               ?.copyWith(
                                 fontWeight: FontWeight.w500,
@@ -672,7 +756,16 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '检测颜色: #${wallpaperColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                          context.tr(
+                            '检测颜色: #{color}',
+                            args: {
+                              'color': wallpaperColor
+                                  .toARGB32()
+                                  .toRadixString(16)
+                                  .substring(2)
+                                  .toUpperCase(),
+                            },
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: isCurrentDynamic
@@ -736,7 +829,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '动态取色不可用',
+                context.tr('动态取色不可用'),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.error,
                   fontWeight: FontWeight.w600,
@@ -746,7 +839,9 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '可能原因：\n• 设备系统版本低于 Android 12\n• 设备制造商禁用了动态取色\n• 系统设置中未启用 Material You',
+            context.tr(
+              '可能原因：\n• 设备系统版本低于 Android 12\n• 设备制造商禁用了动态取色\n• 系统设置中未启用 Material You',
+            ),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -849,7 +944,7 @@ class SettingsScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '十六进制颜色代码',
+            context.tr('十六进制颜色代码'),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -911,7 +1006,7 @@ class SettingsScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '预览效果',
+            context.tr('预览效果'),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: colorScheme.onSurface,
               fontWeight: FontWeight.w600,
@@ -928,7 +1023,7 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '主色',
+                    context.tr('主色'),
                     style: TextStyle(color: colorScheme.onPrimary),
                     textAlign: TextAlign.center,
                   ),
@@ -943,7 +1038,7 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '次色',
+                    context.tr('次色'),
                     style: TextStyle(color: colorScheme.onSecondary),
                     textAlign: TextAlign.center,
                   ),
@@ -958,7 +1053,7 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '三色',
+                    context.tr('三色'),
                     style: TextStyle(color: colorScheme.onTertiary),
                     textAlign: TextAlign.center,
                   ),
@@ -993,7 +1088,7 @@ class SettingsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('重置'),
+            child: Text(context.tr('重置')),
           ),
         ),
         const SizedBox(width: 12),
@@ -1011,7 +1106,7 @@ class SettingsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('应用'),
+            child: Text(context.tr('应用')),
           ),
         ),
       ],
@@ -1039,7 +1134,7 @@ class SettingsScreen extends ConsumerWidget {
         title: '刷新间隔',
         children: intervals.map((interval) {
           return SettingsSelectionItem(
-            title: '${interval.$1} 分钟',
+            title: context.tr('{minutes} 分钟', args: {'minutes': interval.$1}),
             subtitle: interval.$2,
             icon: Icons.timer_outlined,
             isSelected: settings.refreshInterval == interval.$1,
@@ -1074,7 +1169,7 @@ class SettingsScreen extends ConsumerWidget {
         title: '温度单位',
         children: units.map((unit) {
           return SettingsSelectionItem(
-            title: '${unit.$2} (${unit.$3})',
+            title: '${context.tr(unit.$2)} (${unit.$3})',
             subtitle: unit.$4,
             icon: unit.$5,
             isSelected: settings.temperatureUnit == unit.$1,
@@ -1148,7 +1243,7 @@ class SettingsScreen extends ConsumerWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('取消'),
+                child: Text(context.tr('取消')),
               ),
             ),
             const SizedBox(width: 12),
@@ -1158,7 +1253,7 @@ class SettingsScreen extends ConsumerWidget {
                   Navigator.pop(ctx);
                   openAppSettings();
                 },
-                child: const Text('去设置'),
+                child: Text(context.tr('去设置')),
               ),
             ),
           ],
@@ -1176,7 +1271,7 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '轻氧天气需要通知权限才能推送天气预警。请在系统设置中授予通知权限。',
+                    context.tr('轻氧天气需要通知权限才能推送天气预警。请在系统设置中授予通知权限。'),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -1203,7 +1298,7 @@ class SettingsScreen extends ConsumerWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('取消'),
+                child: Text(context.tr('取消')),
               ),
             ),
             const SizedBox(width: 12),
@@ -1215,11 +1310,11 @@ class SettingsScreen extends ConsumerWidget {
                       .openPromotedNotificationSettings();
                   if (!opened && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('无法打开系统实时更新设置页')),
+                      SnackBar(content: Text(context.tr('无法打开系统实时更新设置页'))),
                     );
                   }
                 },
-                child: const Text('去开启'),
+                child: Text(context.tr('去开启')),
               ),
             ),
           ],
@@ -1237,7 +1332,9 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '系统当前未允许应用发布实时更新（Promoted）通知。请先在系统页面开启，再返回打开本开关。',
+                    context.tr(
+                      '系统当前未允许应用发布实时更新（Promoted）通知。请先在系统页面开启，再返回打开本开关。',
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -1264,7 +1361,7 @@ class SettingsScreen extends ConsumerWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('关闭'),
+                child: Text(context.tr('关闭')),
               ),
             ),
             const SizedBox(width: 12),
@@ -1273,7 +1370,7 @@ class SettingsScreen extends ConsumerWidget {
                 onPressed: () {
                   liveUpdateDiagnosticsService.clear();
                 },
-                child: const Text('清空记录'),
+                child: Text(context.tr('清空记录')),
               ),
             ),
           ],
@@ -1281,7 +1378,7 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           _BottomSheetTokenCard(
             child: Text(
-              '每次尝试会记录：系统支持、通知权限、Promoted 权限、可推广特征等检查结果。',
+              context.tr('每次尝试会记录：系统支持、通知权限、Promoted 权限、可推广特征等检查结果。'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1293,7 +1390,7 @@ class SettingsScreen extends ConsumerWidget {
               if (entries.isEmpty) {
                 return _BottomSheetTokenCard(
                   child: Text(
-                    '暂无诊断记录。触发一次实时更新后再回来查看。',
+                    context.tr('暂无诊断记录。触发一次实时更新后再回来查看。'),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -1359,7 +1456,10 @@ class SettingsScreen extends ConsumerWidget {
                             entry.titlePreview!.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(
-                            '标题预览：${entry.titlePreview}',
+                            context.tr(
+                              '标题预览：{title}',
+                              args: {'title': entry.titlePreview},
+                            ),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: Theme.of(
@@ -1375,7 +1475,7 @@ class SettingsScreen extends ConsumerWidget {
                           children: [
                             _buildDiagnosticFlag(
                               context,
-                              '开关',
+                              context.tr('开关'),
                               entry.settingEnabled,
                             ),
                             _buildDiagnosticFlag(
@@ -1385,27 +1485,27 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                             _buildDiagnosticFlag(
                               context,
-                              '有天气数据',
+                              context.tr('有天气数据'),
                               entry.hasWeatherData,
                             ),
                             _buildDiagnosticFlag(
                               context,
-                              '系统支持',
+                              context.tr('系统支持'),
                               entry.isSupported,
                             ),
                             _buildDiagnosticFlag(
                               context,
-                              '通知权限',
+                              context.tr('通知权限'),
                               entry.notificationPermission,
                             ),
                             _buildDiagnosticFlag(
                               context,
-                              'Promoted权限',
+                              context.tr('Promoted权限'),
                               entry.promotedPermission,
                             ),
                             _buildDiagnosticFlag(
                               context,
-                              '可推广特征',
+                              context.tr('可推广特征'),
                               entry.promotableCharacteristics,
                             ),
                           ],
@@ -1551,14 +1651,14 @@ class _ContentBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text('我知道了'),
+          child: Text(context.tr('我知道了')),
         ),
       ),
       children: content.map((item) {
         if (item is String) {
           return _BottomSheetTokenCard(
             child: Text(
-              item,
+              context.tr(item),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 height: 1.5,
@@ -1572,7 +1672,7 @@ class _ContentBottomSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.$1,
+                  context.tr(item.$1),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -1580,7 +1680,7 @@ class _ContentBottomSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.$2,
+                  context.tr(item.$2),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     height: 1.5,
@@ -1615,7 +1715,7 @@ class _AboutBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text('我知道了'),
+          child: Text(context.tr('我知道了')),
         ),
       ),
       children: [
@@ -1625,10 +1725,16 @@ class _AboutBottomSheet extends StatelessWidget {
               children: [
                 const AppIcon(size: 80),
                 const SizedBox(height: 16),
-                Text('轻氧天气', style: Theme.of(context).textTheme.headlineSmall),
+                Text(
+                  context.tr('轻氧天气'),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  '版本 ${AppConstants.appVersion}',
+                  context.tr(
+                    '版本 {version}',
+                    args: {'version': AppConstants.appVersion},
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -1680,7 +1786,7 @@ class _AboutBottomSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '特别鸣谢',
+                    context.tr('特别鸣谢'),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
@@ -1736,7 +1842,7 @@ class _AboutBottomSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                context.tr(title),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
@@ -1759,7 +1865,7 @@ class _AboutBottomSheet extends StatelessWidget {
                 )
               else
                 Text(
-                  content,
+                  context.tr(content),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

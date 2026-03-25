@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app_localizations.dart';
 import '../core/constants/api_config.dart';
 
 class DeepSeekService {
@@ -29,9 +30,35 @@ class DeepSeekService {
         _baseUrl = baseUrl ?? ApiConfig.deepseekBaseUrl;
 
   String _buildSystemPrompt(String? weatherContext) {
-    final dataSection = weatherContext != null && weatherContext.trim().isNotEmpty
-        ? '【当前天气信息】\n$weatherContext'
-        : '（暂无天气数据，请先提醒用户添加城市并刷新天气）';
+    final isEnglish = AppLocalizations.isEnglishCurrentLocale;
+    final hasWeather = weatherContext != null && weatherContext.trim().isNotEmpty;
+
+    final dataSection = hasWeather
+        ? (isEnglish
+              ? '[Current Weather Data]\n$weatherContext'
+              : '【当前天气信息】\n$weatherContext')
+        : (isEnglish
+              ? '(No weather data available. Remind the user to add a city and refresh weather first.)'
+              : '（暂无天气数据，请先提醒用户添加城市并刷新天气）');
+
+    if (isEnglish) {
+      return '''You are "PureWeather Assistant". Provide accurate, readable, and actionable advice based on weather data.
+
+Output plain text only. Do not use Markdown control markers (such as headings, bold, code blocks, or link wrappers).
+
+Use this fixed structure:
+Conclusion: one sentence with the direct judgment first.
+Reasons: up to 3 lines, one point per line.
+Suggestions: actionable steps, prioritized by "now / today / tomorrow".
+Extra: clearly mention alerts, temperature differences, precipitation, or air-quality risks if present.
+
+Style requirements:
+1. Use concise short sentences.
+2. Prefer explicit time points and thresholds (temperature, precipitation chance, wind level, etc.).
+3. If the user question is incomplete, give the best available answer first, then suggest one follow-up question.
+
+$dataSection''';
+    }
 
     return '''你是“轻氧天气助手”。请基于天气数据给出准确、易读、可执行的建议。
 
@@ -105,7 +132,7 @@ $dataSection''';
 
       final stream = response.data?.stream;
       if (stream == null) {
-        yield '抱歉，无法连接到AI服务。';
+        yield AppLocalizations.tr('抱歉，无法连接到AI服务。');
         return;
       }
 
@@ -135,7 +162,7 @@ $dataSection''';
         }
       }
     } catch (e) {
-      yield '抱歉，发生了错误：${e.toString()}';
+      yield AppLocalizations.tr('抱歉，发生了错误：{error}', args: {'error': e.toString()});
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app_localizations.dart';
 
 /// Material You 风格的设置列表项组件
 ///
@@ -79,7 +80,7 @@ class SettingsListTile extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      title,
+                      context.tr(title),
                       style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: titleColor,
@@ -88,7 +89,7 @@ class SettingsListTile extends StatelessWidget {
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        subtitle!,
+                        context.tr(subtitle!),
                         style: textTheme.bodyMedium?.copyWith(
                           color: subtitleColor,
                         ),

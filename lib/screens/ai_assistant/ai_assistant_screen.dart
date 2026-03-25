@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
+import '../../app_localizations.dart';
 import '../../services/deepseek_service.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
@@ -85,7 +86,9 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
       ref.read(chatProvider.notifier).addAssistantMessage(_currentResponse);
     } catch (e) {
-      ref.read(chatProvider.notifier).addAssistantMessage('抱歉，发生了错误。请稍后再试。');
+      ref
+          .read(chatProvider.notifier)
+          .addAssistantMessage(context.tr('抱歉，发生了错误。请稍后再试。'));
     } finally {
       setState(() {
         _isTyping = false;
@@ -211,7 +214,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('天气助手'),
+        title: Text(context.tr('天气助手')),
         actions: [
           if (chatSession.messages.isNotEmpty)
             IconButton.filledTonal(
@@ -219,7 +222,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               onPressed: () {
                 ref.read(chatProvider.notifier).clearHistory();
               },
-              tooltip: '清空对话',
+              tooltip: context.tr('清空对话'),
             ),
         ],
       ),
@@ -296,12 +299,12 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               ).animate().scale(duration: 400.ms),
               const SizedBox(height: 24),
               Text(
-                '你好，我是轻氧天气助手',
+                context.tr('你好，我是轻氧天气助手'),
                 style: Theme.of(context).textTheme.titleLarge,
               ).animate().fadeIn(delay: 200.ms),
               const SizedBox(height: 8),
               Text(
-                '我可以帮你解答天气相关问题，提供穿衣建议、出行提醒等',
+                context.tr('我可以帮你解答天气相关问题，提供穿衣建议、出行提醒等'),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -313,9 +316,9 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildQuickAction('今天适合户外运动吗？'),
-                  _buildQuickAction('明天需要带伞吗？'),
-                  _buildQuickAction('今天穿什么合适？'),
+                  _buildQuickAction(context.tr('今天适合户外运动吗？')),
+                  _buildQuickAction(context.tr('明天需要带伞吗？')),
+                  _buildQuickAction(context.tr('今天穿什么合适？')),
                 ],
               ).animate().fadeIn(delay: 400.ms),
             ],
@@ -401,7 +404,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            '正在思考...',
+            context.tr('正在思考...'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -428,7 +431,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               controller: _messageController,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: '输入消息...',
+                hintText: context.tr('输入消息...'),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(

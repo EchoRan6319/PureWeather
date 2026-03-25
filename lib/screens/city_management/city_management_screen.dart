@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/weather_models.dart';
 import '../../providers/city_provider.dart';
@@ -82,7 +83,9 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('已切换到 ${location.name}'),
+          content: Text(
+            context.tr('已切换到 {location}', args: {'location': location.name}),
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -96,16 +99,16 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除城市'),
-        content: Text('确定要删除 ${city.name} 吗？'),
+        title: Text(context.tr('删除城市')),
+        content: Text(context.tr('确定要删除 {city} 吗？', args: {'city': city.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(context.tr('取消')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('删除'),
+            child: Text(context.tr('删除')),
           ),
         ],
       ),
@@ -119,8 +122,8 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
         final locationState = ref.read(locationInitProvider);
         if (locationState.error != null && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('已删除全部城市，定位失败。请搜索城市或检查定位权限。'),
+            SnackBar(
+              content: Text(context.tr('已删除全部城市，定位失败。请搜索城市或检查定位权限。')),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -147,8 +150,8 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('无法获取位置，请检查权限设置'),
+            SnackBar(
+              content: Text(context.tr('无法获取位置，请检查权限设置')),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -158,7 +161,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('定位失败: $e'),
+            content: Text(context.tr('定位失败: {error}', args: {'error': e})),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -172,7 +175,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('城市管理'),
+        title: Text(context.tr('城市管理')),
       ),
       body: Column(
         children: [
@@ -183,7 +186,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: '搜索城市',
+                    hintText: context.tr('搜索城市'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -208,7 +211,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.my_location),
-                        label: const Text('定位当前位置'),
+                        label: Text(context.tr('定位当前位置')),
                         onPressed: _getCurrentLocation,
                       ),
                     ),
@@ -262,7 +265,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
             subtitle: subtitle.isEmpty ? null : Text(subtitle),
             trailing: FilledButton.tonal(
               onPressed: () => _addCity(location),
-              child: const Text('添加'),
+              child: Text(context.tr('添加')),
             ),
           ),
         ).animate().fadeIn(delay: Duration(milliseconds: 50 * index));
@@ -286,14 +289,14 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              '还没有添加城市',
+              context.tr('还没有添加城市'),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              '搜索城市或使用定位添加',
+              context.tr('搜索城市或使用定位添加'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -412,8 +415,10 @@ class _CityListItem extends ConsumerWidget {
               spacing: 6,
               runSpacing: 6,
               children: [
-                if (city.isLocated) _StatusTag(label: '定位', icon: Icons.my_location_rounded),
-                if (isDefault) _StatusTag(label: '默认', icon: Icons.check_circle_rounded),
+                if (city.isLocated)
+                  _StatusTag(label: context.tr('定位'), icon: Icons.my_location_rounded),
+                if (isDefault)
+                  _StatusTag(label: context.tr('默认'), icon: Icons.check_circle_rounded),
               ],
             ),
           ],

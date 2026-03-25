@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../app_localizations.dart';
 
 /// 实时更新推送结果
 class LiveUpdatePostResult {
@@ -44,10 +45,10 @@ class NotificationService {
   static const String _channelId = 'weather_alerts';
 
   /// 通知渠道名称
-  static const String _channelName = '天气预警';
+  String get _channelName => AppLocalizations.tr('天气预警');
 
   /// 通知渠道描述
-  static const String _channelDescription = '接收极端天气预警通知';
+  String get _channelDescription => AppLocalizations.tr('接收极端天气预警通知');
 
   /// 首次运行标记键
   static const String _keyFirstRun = 'first_run_completed';
@@ -287,7 +288,7 @@ class NotificationService {
           >();
 
       await androidPlugin?.createNotificationChannel(
-        const AndroidNotificationChannel(
+        AndroidNotificationChannel(
           _channelId,
           _channelName,
           description: _channelDescription,
@@ -353,17 +354,17 @@ class NotificationService {
     required String content,
   }) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
-      return const LiveUpdatePostResult(
+      return LiveUpdatePostResult(
         success: false,
         code: 'NON_ANDROID_PLATFORM',
-        message: '当前平台不是 Android',
+        message: AppLocalizations.tr('当前平台不是 Android'),
       );
     }
     if (!await checkNotificationPermission()) {
-      return const LiveUpdatePostResult(
+      return LiveUpdatePostResult(
         success: false,
         code: 'NOTIFICATION_PERMISSION_DENIED',
-        message: '未授予通知权限',
+        message: AppLocalizations.tr('未授予通知权限'),
       );
     }
     try {
@@ -388,14 +389,16 @@ class NotificationService {
       return LiveUpdatePostResult(
         success: success,
         code: success ? 'POSTED' : 'UNKNOWN_FAILURE',
-        message: success ? '实时更新通知发送成功' : '实时更新通知发送失败',
+        message: success
+            ? AppLocalizations.tr('实时更新通知发送成功')
+            : AppLocalizations.tr('实时更新通知发送失败'),
       );
     } catch (e) {
       debugPrint('[LiveUpdate] Show failed: $e');
       return LiveUpdatePostResult(
         success: false,
         code: 'CHANNEL_EXCEPTION',
-        message: '通道调用异常: $e',
+        message: AppLocalizations.tr('通道调用异常: {error}', args: {'error': e}),
       );
     }
   }
@@ -420,10 +423,10 @@ class NotificationService {
     required String content,
   }) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
-      return const LiveUpdatePostResult(
+      return LiveUpdatePostResult(
         success: false,
         code: 'NON_ANDROID_PLATFORM',
-        message: '当前平台不是 Android',
+        message: AppLocalizations.tr('当前平台不是 Android'),
       );
     }
     try {
@@ -447,16 +450,16 @@ class NotificationService {
           message: message,
         );
       }
-      return const LiveUpdatePostResult(
+      return LiveUpdatePostResult(
         success: false,
         code: 'INVALID_NATIVE_RESPONSE',
-        message: '原生返回结果格式无效',
+        message: AppLocalizations.tr('原生返回结果格式无效'),
       );
     } catch (e) {
       return LiveUpdatePostResult(
         success: false,
         code: 'CHANNEL_EXCEPTION',
-        message: '调度实时更新通知异常: $e',
+        message: AppLocalizations.tr('调度实时更新通知异常: {error}', args: {'error': e}),
       );
     }
   }

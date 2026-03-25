@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'providers/theme_provider.dart';
@@ -71,11 +72,23 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     await scheduledBroadcastServiceProvider.scheduleBroadcasts(settings);
   }
 
+  Locale? _resolveAppLocale(AppLanguage language) {
+    switch (language) {
+      case AppLanguage.zhCN:
+        return const Locale('zh', 'CN');
+      case AppLanguage.enUS:
+        return const Locale('en', 'US');
+      case AppLanguage.system:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeSettings = ref.watch(themeProvider);
     final appSettings = ref.watch(settingsProvider);
     final themeNotifier = ref.read(themeProvider.notifier);
+    final appLocale = _resolveAppLocale(appSettings.appLanguage);
 
     ref.listen<ScheduledBroadcastSettings>(scheduledBroadcastProvider, (
       previous,
@@ -130,14 +143,32 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                 : darkColorScheme;
 
             return MaterialApp(
-              title: '轻氧天气',
+              title: AppLocalizations.tr('轻氧天气'),
               debugShowCheckedModeBanner: false,
+              locale: appLocale,
               localizationsDelegates: const [
+                AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+              supportedLocales: AppLocalizations.supportedLocales,
+              localeResolutionCallback: (locale, supportedLocales) {
+                if (locale == null) {
+                  AppLocalizations.updateCurrentLocale(
+                    const Locale('zh', 'CN'),
+                  );
+                  return const Locale('zh', 'CN');
+                }
+                for (final supportedLocale in supportedLocales) {
+                  if (supportedLocale.languageCode == locale.languageCode) {
+                    AppLocalizations.updateCurrentLocale(supportedLocale);
+                    return supportedLocale;
+                  }
+                }
+                AppLocalizations.updateCurrentLocale(const Locale('zh', 'CN'));
+                return const Locale('zh', 'CN');
+              },
               theme: AppTheme.createTheme(
                 colorScheme: lightColorScheme,
                 useMaterial3: themeSettings.useMaterial3,
@@ -149,6 +180,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               ),
               themeMode: themeNotifier.flutterThemeMode,
               builder: (context, child) {
+                AppLocalizations.updateCurrentLocale(
+                  Localizations.localeOf(context),
+                );
                 final isDark = Theme.of(context).brightness == Brightness.dark;
                 final overlayStyle =
                     (isDark

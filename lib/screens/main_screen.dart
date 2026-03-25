@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../app_localizations.dart';
 import '../providers/city_provider.dart';
 import '../providers/weather_provider.dart';
 import '../providers/settings_provider.dart';
@@ -78,19 +79,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: Text(context.tr(title)),
+        content: Text(context.tr(message)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('稍后设置'),
+            child: Text(context.tr('稍后设置')),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               openAppSettings();
             },
-            child: const Text('去设置'),
+            child: Text(context.tr('去设置')),
           ),
         ],
       ),
@@ -152,23 +153,26 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   /// [showAIAssistant] 是否显示天气助手
   ///
   /// 返回导航目标列表
-  List<NavigationDestination> _getDestinations(bool showAIAssistant) {
+  List<NavigationDestination> _getDestinations(
+    BuildContext context,
+    bool showAIAssistant,
+  ) {
     return [
-      const NavigationDestination(
+      NavigationDestination(
         icon: Icon(Icons.wb_cloudy_outlined),
         selectedIcon: Icon(Icons.wb_cloudy),
-        label: '天气',
+        label: context.tr('天气'),
       ),
       if (showAIAssistant)
-        const NavigationDestination(
+        NavigationDestination(
           icon: Icon(Icons.psychology_outlined),
           selectedIcon: Icon(Icons.psychology),
-          label: '天气助手',
+          label: context.tr('天气助手'),
         ),
-      const NavigationDestination(
+      NavigationDestination(
         icon: Icon(Icons.settings_outlined),
         selectedIcon: Icon(Icons.settings),
-        label: '设置',
+        label: context.tr('设置'),
       ),
     ];
   }
@@ -178,7 +182,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final appSettings = ref.watch(settingsProvider);
     final showAI = appSettings.showAIAssistant;
     final screens = _getScreens(showAI);
-    final destinations = _getDestinations(showAI);
+    final destinations = _getDestinations(context, showAI);
 
     // 监听位置初始化状态
     ref.listen(locationInitProvider, (previous, next) {
@@ -235,6 +239,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             .syncAndroidLiveUpdateNotificationWithSettings(
               scene: 'settings_changed',
             );
+      }
+
+      // 处理语言变化：切换语言后自动重新拉取天气，避免出现中英混排
+      if (previous.appLanguage != next.appLanguage) {
+        final defaultCity = ref.read(defaultCityProvider);
+        if (defaultCity != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            ref.read(weatherProvider.notifier).loadWeather(defaultCity);
+          });
+        }
       }
     });
 

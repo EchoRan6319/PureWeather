@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Material You 风格的设置分组组件
@@ -69,7 +70,7 @@ class SettingsSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  title,
+                  context.tr(title),
                   style: textTheme.titleSmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w600,

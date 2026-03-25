@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
+import '../app_localizations.dart';
 import '../models/weather_models.dart';
 import '../core/constants/app_constants.dart';
 import '../core/theme/app_theme.dart';
@@ -56,7 +57,7 @@ class HourlyForecast extends StatelessWidget {
         }
 
         if (filteredHourly.isEmpty) {
-          return _buildEmptyState(context, subtitle: '小时数据已过期或时间解析失败');
+          return _buildEmptyState(context, subtitle: context.tr('小时数据已过期或时间解析失败'));
         }
 
         return Container(
@@ -81,7 +82,8 @@ class HourlyForecast extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, {String subtitle = '暂无小时预报数据'}) {
+  Widget _buildEmptyState(BuildContext context, {String? subtitle}) {
+    final displaySubtitle = subtitle ?? context.tr('暂无小时预报数据');
     return Container(
       decoration: BoxDecoration(
         color: context.uiTokens.cardBackground,
@@ -105,7 +107,7 @@ class HourlyForecast extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    subtitle,
+                    displaySubtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -132,7 +134,7 @@ class HourlyForecast extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          '24小时预报',
+          context.tr('24小时预报'),
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../app_localizations.dart';
 import '../core/constants/api_config.dart';
 import '../models/weather_models.dart';
 import '../providers/settings_provider.dart';
@@ -129,7 +130,7 @@ class LocationService {
       return township;
     }
 
-    return city.isNotEmpty ? city : '当前位置';
+    return city.isNotEmpty ? city : AppLocalizations.tr('当前位置');
   }
 
   /// 根据坐标获取位置信息
@@ -182,7 +183,7 @@ class LocationService {
           accuracyLevel: accuracyLevel,
         );
 
-        if (locationName.isEmpty || locationName == '当前位置') {
+        if (locationName.isEmpty || locationName == AppLocalizations.tr('当前位置')) {
           if (accuracyLevel == LocationAccuracyLevel.street) {
             locationName = township.isNotEmpty
                 ? township
@@ -195,7 +196,9 @@ class LocationService {
         }
 
         if (locationName.isEmpty) {
-          locationName = province.isNotEmpty ? province : '当前位置';
+          locationName = province.isNotEmpty
+              ? province
+              : AppLocalizations.tr('当前位置');
         }
 
         return Location(
@@ -203,7 +206,7 @@ class LocationService {
           name: locationName,
           adm1: province,
           adm2: city,
-          country: '中国',
+          country: AppLocalizations.tr('中国'),
           lat: lat,
           lon: lon,
           tz: 'Asia/Shanghai',
@@ -279,7 +282,7 @@ class LocationService {
                 name: name,
                 adm1: adm1,
                 adm2: adm2,
-                country: '中国',
+                country: AppLocalizations.tr('中国'),
                 lat: lat,
                 lon: lon,
                 tz: 'Asia/Shanghai',
@@ -341,7 +344,7 @@ class LocationService {
                 name: name,
                 adm1: district.isNotEmpty ? district : city,
                 adm2: city,
-                country: '中国',
+                country: AppLocalizations.tr('中国'),
                 lat: lat,
                 lon: lon,
                 tz: 'Asia/Shanghai',

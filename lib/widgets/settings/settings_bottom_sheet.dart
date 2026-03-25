@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
+import '../../app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Material Design 3 风格的底部弹窗组件
@@ -90,7 +91,7 @@ class SettingsBottomSheet extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                   child: Text(
-                    title,
+                    context.tr(title),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
@@ -240,7 +241,7 @@ class SettingsSelectionItem extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        title,
+                        context.tr(title),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: isSelected
                               ? FontWeight.w600
@@ -255,7 +256,7 @@ class SettingsSelectionItem extends StatelessWidget {
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
-                          subtitle!,
+                          context.tr(subtitle!),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: isSelected

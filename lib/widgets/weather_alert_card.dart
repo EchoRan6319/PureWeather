@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import '../app_localizations.dart';
 import '../models/weather_models.dart';
 import '../core/theme/app_theme.dart';
 
@@ -92,7 +93,7 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
                       ),
                     ),
                     child: Text(
-                      widget.alerts.first.level,
+                      context.tr(widget.alerts.first.level),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: levelColor,
                         fontWeight: FontWeight.w700,
@@ -111,7 +112,10 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
               Padding(
                 padding: EdgeInsets.only(left: iconSize + spacing),
                 child: Text(
-                  '${widget.alerts.length}条预警',
+                  context.tr(
+                    '{count}条预警',
+                    args: {'count': widget.alerts.length},
+                  ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontSize: isLargeScreen ? 14 : null,
@@ -201,7 +205,10 @@ class _AlertItem extends StatelessWidget {
           ),
           SizedBox(height: spacing),
           Text(
-            '发布时间: ${_formatPubTime(alert.pubTime)}',
+            context.tr(
+              '发布时间: {time}',
+              args: {'time': _formatPubTime(context, alert.pubTime)},
+            ),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontSize: isLargeScreen ? 12 : 11,
@@ -212,7 +219,7 @@ class _AlertItem extends StatelessWidget {
     );
   }
 
-  String _formatPubTime(String pubTime) {
+  String _formatPubTime(BuildContext context, String pubTime) {
     try {
       final dateTime = DateTime.parse(pubTime);
       final localTime = dateTime.toLocal();
@@ -230,11 +237,11 @@ class _AlertItem extends StatelessWidget {
       final timeStr = timeFormat.format(localTime);
 
       if (difference == 0) {
-        return '今天 $timeStr';
+        return '${context.tr('今天')} $timeStr';
       } else if (difference == 1) {
-        return '昨天 $timeStr';
+        return '${context.tr('昨天')} $timeStr';
       } else if (difference == 2) {
-        return '前天 $timeStr';
+        return '${context.tr('前天')} $timeStr';
       } else {
         final dateFormat = DateFormat('MM-dd HH:mm');
         return dateFormat.format(localTime);

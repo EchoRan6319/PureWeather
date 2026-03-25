@@ -10,6 +10,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'qweather_service.dart';
 import 'notification_service.dart';
 import 'live_update_diagnostics_service.dart';
+import '../app_localizations.dart';
 import '../providers/city_repository.dart';
 import '../providers/scheduled_broadcast_provider.dart';
 import '../models/weather_models.dart';
@@ -54,10 +55,10 @@ class ScheduledBroadcastService {
   static const String _channelId = 'scheduled_broadcast';
 
   /// 通知渠道名称
-  static const String _channelName = '定时播报';
+  String get _channelName => AppLocalizations.tr('定时播报');
 
   /// 通知渠道描述
-  static const String _channelDescription = '定时推送天气信息';
+  String get _channelDescription => AppLocalizations.tr('定时推送天气信息');
 
   /// 是否已初始化
   bool _isInitialized = false;
@@ -97,7 +98,7 @@ class ScheduledBroadcastService {
           >();
 
       await androidPlugin?.createNotificationChannel(
-        const AndroidNotificationChannel(
+        AndroidNotificationChannel(
           _channelId,
           _channelName,
           description: _channelDescription,
@@ -170,15 +171,20 @@ class ScheduledBroadcastService {
     }
 
     // 提前获取天气数据，将内容“硬编码”到系统调度中
-    String body = '点击查看今日天气详情';
+    String body = AppLocalizations.tr('点击查看今日天气详情');
     try {
       final weatherData = await _fetchDefaultCityWeather();
       body = _buildMorningContent(weatherData, settings);
-      if (body.isEmpty) body = '今日天气：${weatherData.current.text}';
+      if (body.isEmpty) {
+        body = AppLocalizations.tr(
+          '今日天气：{text}',
+          args: {'text': AppLocalizations.tr(weatherData.current.text)},
+        );
+      }
 
       // 如果是用缓存数据，加上标记
       final isFromNetwork = await _isDataFresh(weatherData);
-      if (!isFromNetwork) body += ' (来自本地缓存)';
+      if (!isFromNetwork) body += AppLocalizations.tr(' (来自本地缓存)');
     } catch (e) {
       debugPrint('[ScheduledBroadcast] Morning pre-fetch failed: $e');
     }
@@ -196,7 +202,7 @@ class ScheduledBroadcastService {
       triggerAt: DateTime.fromMillisecondsSinceEpoch(
         scheduledDate.millisecondsSinceEpoch,
       ),
-      title: '早安天气',
+      title: AppLocalizations.tr('早安天气'),
       body: body,
     );
     if (scheduledAsLiveUpdate) {
@@ -212,7 +218,7 @@ class ScheduledBroadcastService {
 
     await _notifications.zonedSchedule(
       _morningNotificationId,
-      '早安天气',
+      AppLocalizations.tr('早安天气'),
       body,
       scheduledDate,
       await _buildNotificationDetails(),
@@ -252,14 +258,19 @@ class ScheduledBroadcastService {
     }
 
     // 提前获取天气数据
-    String body = '点击查看明日天气详情';
+    String body = AppLocalizations.tr('点击查看明日天气详情');
     try {
       final weatherData = await _fetchDefaultCityWeather();
       body = _buildEveningContent(weatherData, settings);
-      if (body.isEmpty) body = '晚间预报：${weatherData.current.text}';
+      if (body.isEmpty) {
+        body = AppLocalizations.tr(
+          '晚间预报：{text}',
+          args: {'text': AppLocalizations.tr(weatherData.current.text)},
+        );
+      }
 
       final isFromNetwork = await _isDataFresh(weatherData);
-      if (!isFromNetwork) body += ' (来自本地缓存)';
+      if (!isFromNetwork) body += AppLocalizations.tr(' (来自本地缓存)');
     } catch (e) {
       debugPrint('[ScheduledBroadcast] Evening pre-fetch failed: $e');
     }
@@ -277,7 +288,7 @@ class ScheduledBroadcastService {
       triggerAt: DateTime.fromMillisecondsSinceEpoch(
         scheduledDate.millisecondsSinceEpoch,
       ),
-      title: '晚间天气',
+      title: AppLocalizations.tr('晚间天气'),
       body: body,
     );
     if (scheduledAsLiveUpdate) {
@@ -293,7 +304,7 @@ class ScheduledBroadcastService {
 
     await _notifications.zonedSchedule(
       _eveningNotificationId,
-      '晚间天气',
+      AppLocalizations.tr('晚间天气'),
       body,
       scheduledDate,
       await _buildNotificationDetails(),
@@ -448,13 +459,16 @@ class ScheduledBroadcastService {
       debugPrint('[ScheduledBroadcast] Starting morning broadcast...');
       final weatherData = await _fetchDefaultCityWeather();
 
-      final title = '早上好 ☀️ ${weatherData.location.name}';
+      final title = AppLocalizations.tr(
+        '早上好 ☀️ {city}',
+        args: {'city': weatherData.location.name},
+      );
       String body = _buildMorningContent(weatherData, settings);
 
       // 如果数据较旧，增加缓存标记
       if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours >
           1) {
-        body += '\n(来自本地缓存)';
+        body += AppLocalizations.tr('\n(来自本地缓存)');
       }
       debugPrint('[ScheduledBroadcast] Morning broadcast content: $body');
 
@@ -476,7 +490,7 @@ class ScheduledBroadcastService {
       debugPrint('[ScheduledBroadcast] Error sending morning broadcast: $e');
       debugPrint('[ScheduledBroadcast] StackTrace: $stackTrace');
       await _sendErrorNotification(
-        '早安天气',
+        AppLocalizations.tr('早安天气'),
         e.toString().replaceFirst('Exception: ', ''),
       );
     }
@@ -490,13 +504,16 @@ class ScheduledBroadcastService {
       debugPrint('[ScheduledBroadcast] Starting evening broadcast...');
       final weatherData = await _fetchDefaultCityWeather();
 
-      final title = '晚上好 🌙 ${weatherData.location.name}';
+      final title = AppLocalizations.tr(
+        '晚上好 🌙 {city}',
+        args: {'city': weatherData.location.name},
+      );
       String body = _buildEveningContent(weatherData, settings);
 
       // 如果数据较旧，增加缓存标记
       if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours >
           1) {
-        body += '\n(来自本地缓存)';
+        body += AppLocalizations.tr('\n(来自本地缓存)');
       }
       debugPrint('[ScheduledBroadcast] Evening broadcast content: $body');
 
@@ -518,7 +535,7 @@ class ScheduledBroadcastService {
       debugPrint('[ScheduledBroadcast] Error sending evening broadcast: $e');
       debugPrint('[ScheduledBroadcast] StackTrace: $stackTrace');
       await _sendErrorNotification(
-        '晚间天气',
+        AppLocalizations.tr('晚间天气'),
         e.toString().replaceFirst('Exception: ', ''),
       );
     }
@@ -535,7 +552,7 @@ class ScheduledBroadcastService {
     final cities = cityStore.cities;
 
     if (cities.isEmpty) {
-      throw Exception('未找到保存的城市，请先打开应用获取位置');
+      throw Exception(AppLocalizations.tr('未找到保存的城市，请先打开应用获取位置'));
     }
 
     final defaultCity = cityStore.defaultCityId == null
@@ -573,7 +590,9 @@ class ScheduledBroadcastService {
         debugPrint('[ScheduledBroadcast] Cache read failed: $cacheError');
       }
 
-      throw Exception('天气数据获取失败: $e');
+      throw Exception(
+        AppLocalizations.tr('天气数据获取失败: {error}', args: {'error': e}),
+      );
     }
   }
 
@@ -589,7 +608,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'NON_ANDROID_PLATFORM',
-        message: '定时播报实时更新仅支持 Android',
+        message: AppLocalizations.tr('定时播报实时更新仅支持 Android'),
         isAndroid: false,
         titlePreview: title,
       );
@@ -603,7 +622,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'ANDROID_VERSION_UNSUPPORTED',
-        message: '当前系统不支持实时更新通知（需 Android 16+）',
+        message: AppLocalizations.tr('当前系统不支持实时更新通知（需 Android 16+）'),
         isAndroid: true,
         isSupported: false,
         titlePreview: title,
@@ -618,7 +637,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'NOTIFICATION_PERMISSION_DENIED',
-        message: '未授予通知权限',
+        message: AppLocalizations.tr('未授予通知权限'),
         isAndroid: true,
         isSupported: true,
         notificationPermission: false,
@@ -634,7 +653,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'PROMOTED_PERMISSION_DENIED',
-        message: '系统未允许应用发布 Promoted 实时更新通知',
+        message: AppLocalizations.tr('系统未允许应用发布 Promoted 实时更新通知'),
         isAndroid: true,
         isSupported: true,
         notificationPermission: true,
@@ -677,7 +696,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'NON_ANDROID_PLATFORM',
-        message: '定时调度实时更新仅支持 Android',
+        message: AppLocalizations.tr('定时调度实时更新仅支持 Android'),
         isAndroid: false,
         titlePreview: title,
       );
@@ -691,7 +710,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'ANDROID_VERSION_UNSUPPORTED',
-        message: '当前系统不支持实时更新通知（需 Android 16+）',
+        message: AppLocalizations.tr('当前系统不支持实时更新通知（需 Android 16+）'),
         isAndroid: true,
         isSupported: false,
         titlePreview: title,
@@ -706,7 +725,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'NOTIFICATION_PERMISSION_DENIED',
-        message: '未授予通知权限',
+        message: AppLocalizations.tr('未授予通知权限'),
         isAndroid: true,
         isSupported: true,
         notificationPermission: false,
@@ -722,7 +741,7 @@ class ScheduledBroadcastService {
         scene: scene,
         success: false,
         code: 'PROMOTED_PERMISSION_DENIED',
-        message: '系统未允许应用发布 Promoted 实时更新通知',
+        message: AppLocalizations.tr('系统未允许应用发布 Promoted 实时更新通知'),
         isAndroid: true,
         isSupported: true,
         notificationPermission: true,
@@ -794,8 +813,15 @@ class ScheduledBroadcastService {
     final current = data.current;
     final today = data.daily.isNotEmpty ? data.daily.first : null;
 
-    buffer.writeln('今日天气：${current.text}');
-    buffer.write('当前温度：${current.temp}°C');
+    buffer.writeln(
+      AppLocalizations.tr(
+        '今日天气：{text}',
+        args: {'text': AppLocalizations.tr(current.text)},
+      ),
+    );
+    buffer.write(
+      AppLocalizations.tr('当前温度：{temp}°C', args: {'temp': current.temp}),
+    );
 
     if (today != null) {
       buffer.write(' | ${today.tempMin}°C ~ ${today.tempMax}°C');
@@ -803,12 +829,25 @@ class ScheduledBroadcastService {
 
     if (settings.includeWindInfo) {
       buffer.writeln();
-      buffer.write('风向风力：${current.windDir} ${current.windScale}级');
+      buffer.write(
+        AppLocalizations.tr(
+          '风向风力：{dir} {scale}级',
+          args: {
+            'dir': AppLocalizations.tr(current.windDir),
+            'scale': current.windScale,
+          },
+        ),
+      );
     }
 
     if (settings.includeAirQuality) {
       buffer.writeln();
-      buffer.write('湿度：${current.humidity}%');
+      buffer.write(
+        AppLocalizations.tr(
+          '湿度：{humidity}%',
+          args: {'humidity': current.humidity},
+        ),
+      );
     }
 
     return buffer.toString().trim();
@@ -828,12 +867,30 @@ class ScheduledBroadcastService {
     final tomorrow = data.daily.length > 1 ? data.daily[1] : null;
 
     if (tomorrow != null) {
-      buffer.writeln('明日天气：${tomorrow.textDay}');
-      buffer.write('温度：${tomorrow.tempMin}°C ~ ${tomorrow.tempMax}°C');
+      buffer.writeln(
+        AppLocalizations.tr(
+          '明日天气：{text}',
+          args: {'text': AppLocalizations.tr(tomorrow.textDay)},
+        ),
+      );
+      buffer.write(
+        AppLocalizations.tr(
+          '温度：{min}°C ~ {max}°C',
+          args: {'min': tomorrow.tempMin, 'max': tomorrow.tempMax},
+        ),
+      );
 
       if (settings.includeWindInfo) {
         buffer.writeln();
-        buffer.write('风向风力：${tomorrow.windDirDay} ${tomorrow.windScaleDay}级');
+        buffer.write(
+          AppLocalizations.tr(
+            '风向风力：{dir} {scale}级',
+            args: {
+              'dir': AppLocalizations.tr(tomorrow.windDirDay),
+              'scale': tomorrow.windScaleDay,
+            },
+          ),
+        );
       }
 
       if (tomorrow.precip.isNotEmpty &&
@@ -841,11 +898,16 @@ class ScheduledBroadcastService {
         final precip = double.parse(tomorrow.precip);
         if (precip > 0) {
           buffer.writeln();
-          buffer.write('降水量：${tomorrow.precip}mm');
+          buffer.write(
+            AppLocalizations.tr(
+              '降水量：{precip}mm',
+              args: {'precip': tomorrow.precip},
+            ),
+          );
         }
       }
     } else {
-      buffer.write('暂无明日天气数据');
+      buffer.write(AppLocalizations.tr('暂无明日天气数据'));
     }
 
     return buffer.toString().trim();

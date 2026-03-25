@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import '../../app_localizations.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -30,35 +31,6 @@ class _CardOrderBottomSheet extends ConsumerStatefulWidget {
 class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
   late List<String> _currentOrder;
 
-  final Map<String, ({String title, IconData icon, String description})>
-  _cardInfo = {
-    'hourly': (
-      title: '24小时预报',
-      icon: Icons.schedule_outlined,
-      description: '显示未来24小时的天气变化趋势',
-    ),
-    'daily': (
-      title: '7天预报',
-      icon: Icons.calendar_month_outlined,
-      description: '显示未来7天的天气概况',
-    ),
-    'airQuality': (
-      title: '空气质量',
-      icon: Icons.air_outlined,
-      description: '显示当前空气质量指数和污染物信息',
-    ),
-    'details': (
-      title: '详细信息',
-      icon: Icons.info_outline,
-      description: '显示湿度、气压、能见度等详细数据',
-    ),
-    'indices': (
-      title: '生活指数',
-      icon: Icons.tips_and_updates_outlined,
-      description: '显示穿衣、运动、洗车等生活建议',
-    ),
-  };
-
   @override
   void initState() {
     super.initState();
@@ -81,6 +53,34 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cardInfo = <String, ({String title, IconData icon, String description})>{
+      'hourly': (
+        title: context.tr('24小时预报'),
+        icon: Icons.schedule_outlined,
+        description: context.tr('显示未来24小时的天气变化趋势'),
+      ),
+      'daily': (
+        title: context.tr('7天预报'),
+        icon: Icons.calendar_month_outlined,
+        description: context.tr('显示未来7天的天气概况'),
+      ),
+      'airQuality': (
+        title: context.tr('空气质量'),
+        icon: Icons.air_outlined,
+        description: context.tr('显示当前空气质量指数和污染物信息'),
+      ),
+      'details': (
+        title: context.tr('详细信息'),
+        icon: Icons.info_outline,
+        description: context.tr('显示湿度、气压、能见度等详细数据'),
+      ),
+      'indices': (
+        title: context.tr('生活指数'),
+        icon: Icons.tips_and_updates_outlined,
+        description: context.tr('显示穿衣、运动、洗车等生活建议'),
+      ),
+    };
+
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final mediaQuery = MediaQuery.of(context);
@@ -151,7 +151,7 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                         Expanded(
                           child: Center(
                             child: Text(
-                              '天气卡片排序',
+                              context.tr('天气卡片排序'),
                               style: textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: colorScheme.onSurface,
@@ -163,7 +163,7 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                           width: 48,
                           child: IconButton(
                             icon: const Icon(Icons.restore_outlined),
-                            tooltip: '恢复默认',
+                            tooltip: context.tr('恢复默认'),
                             onPressed: () {
                               setState(() {
                                 _currentOrder = [
@@ -203,7 +203,9 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '按住并拖动卡片右侧的图标，调整它们在天气详情页中的显示顺序。',
+                            context.tr(
+                              '按住并拖动卡片右侧的图标，调整它们在天气详情页中的显示顺序。',
+                            ),
                             style: textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -254,7 +256,7 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                       },
                       itemBuilder: (context, index) {
                         final key = _currentOrder[index];
-                        final info = _cardInfo[key]!;
+                        final info = cardInfo[key]!;
 
                         return _ReorderableCardItem(
                           key: ValueKey(key),
@@ -284,7 +286,7 @@ class _CardOrderBottomSheetState extends ConsumerState<_CardOrderBottomSheet> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('完成'),
+                      child: Text(context.tr('完成')),
                     ),
                   ),
                 ),

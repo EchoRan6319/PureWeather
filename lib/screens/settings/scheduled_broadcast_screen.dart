@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../app_localizations.dart';
 import '../../providers/scheduled_broadcast_provider.dart';
 import '../../services/scheduled_broadcast_service.dart';
 import '../../services/notification_service.dart';
@@ -55,7 +56,9 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '设置每日定时推送天气信息。Android 16+ 将优先尝试实时更新通知，不满足条件时自动回退普通通知。',
+              context.tr(
+                '设置每日定时推送天气信息。Android 16+ 将优先尝试实时更新通知，不满足条件时自动回退普通通知。',
+              ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -287,7 +290,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      context.tr(title),
                       style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: titleColor,
@@ -295,7 +298,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      subtitle,
+                      context.tr(subtitle),
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -386,30 +389,30 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         bottomAction: Row(
           children: [
             Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('以后再说'),
+                  child: Text(context.tr('以后再说')),
+                ),
               ),
-            ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('去设置'),
+                  child: Text(context.tr('去设置')),
+                ),
               ),
-            ),
           ],
         ),
         children: [
@@ -425,14 +428,14 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Android 系统可能会为了省电而延迟后台通知。',
+                  context.tr('Android 系统可能会为了省电而延迟后台通知。'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '建议将应用设为"不限制"电池使用，以确保天气播报准时送达。',
+                  context.tr('建议将应用设为"不限制"电池使用，以确保天气播报准时送达。'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -456,30 +459,30 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         bottomAction: Row(
           children: [
             Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('已开启'),
+                  child: Text(context.tr('已开启')),
+                ),
               ),
-            ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('去检查'),
+                  child: Text(context.tr('去检查')),
+                ),
               ),
-            ),
           ],
         ),
         children: [
@@ -495,7 +498,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '定时播报需要"闹钟和提醒"权限才能准时推送。',
+                  context.tr('定时播报需要"闹钟和提醒"权限才能准时推送。'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -513,7 +516,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '请确保以下设置已开启：',
+                        context.tr('请确保以下设置已开启：'),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
@@ -521,7 +524,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '• 设置 → 应用 → 轻氧天气 → 权限 → 闹钟和提醒',
+                        context.tr('• 设置 → 应用 → 轻氧天气 → 权限 → 闹钟和提醒'),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
@@ -531,7 +534,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '点击"去检查"跳转到设置页面确认。',
+                  context.tr('点击"去检查"跳转到设置页面确认。'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -555,44 +558,47 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) => SettingsBottomSheet(
-        title: '需要$title',
+        title: context.tr('需要{title}', args: {'title': context.tr(title)}),
         bottomAction: Row(
           children: [
             Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(ctx),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('取消'),
+                  child: Text(context.tr('取消')),
+                ),
               ),
-            ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  openAppSettings();
-                },
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    openAppSettings();
+                  },
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('去设置'),
+                  child: Text(context.tr('去设置')),
+                ),
               ),
-            ),
           ],
         ),
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Text(
-              '$message。请在系统设置中授予权限。',
+              context.tr(
+                '{message}。请在系统设置中授予权限。',
+                args: {'message': context.tr(message)},
+              ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -640,7 +646,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
       isDismissible: false,
       enableDrag: false,
       builder: (ctx) => SettingsBottomSheet(
-        title: '请稍候',
+        title: context.tr('请稍候'),
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
@@ -657,7 +663,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
                 Text(
-                  '正在获取天气信息...',
+                  context.tr('正在获取天气信息...'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -679,8 +685,8 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
       if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('测试播报已发送'),
+          SnackBar(
+            content: Text(context.tr('测试播报已发送')),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -690,7 +696,7 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('发送失败: $e'),
+            content: Text(context.tr('发送失败: {error}', args: {'error': e})),
             behavior: SnackBarBehavior.floating,
           ),
         );

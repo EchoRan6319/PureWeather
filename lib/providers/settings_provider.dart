@@ -7,6 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - street: 街道级别
 enum LocationAccuracyLevel { district, street }
 
+/// 应用语言枚举
+///
+/// - system: 跟随系统
+/// - zhCN: 简体中文
+/// - enUS: English (US)
+enum AppLanguage { system, zhCN, enUS }
+
 /// 应用设置类
 ///
 /// 管理应用的所有设置选项
@@ -38,6 +45,9 @@ class AppSettings {
   /// 位置精度级别
   final LocationAccuracyLevel locationAccuracyLevel;
 
+  /// 应用语言
+  final AppLanguage appLanguage;
+
   /// 天气卡片顺序
   final List<String> weatherCardOrder;
 
@@ -52,6 +62,7 @@ class AppSettings {
     this.showFeelsLike = true,
     this.showAIAssistant = true,
     this.locationAccuracyLevel = LocationAccuracyLevel.district,
+    this.appLanguage = AppLanguage.system,
     this.weatherCardOrder = const [
       'hourly',
       'daily',
@@ -72,6 +83,7 @@ class AppSettings {
   /// [showFeelsLike]: 是否显示体感温度
   /// [showAIAssistant]: 是否显示天气助手
   /// [locationAccuracyLevel]: 位置精度级别
+  /// [appLanguage]: 应用语言
   /// [weatherCardOrder]: 天气卡片顺序
   AppSettings copyWith({
     bool? predictiveBackEnabled,
@@ -83,6 +95,7 @@ class AppSettings {
     bool? showFeelsLike,
     bool? showAIAssistant,
     LocationAccuracyLevel? locationAccuracyLevel,
+    AppLanguage? appLanguage,
     List<String>? weatherCardOrder,
   }) {
     return AppSettings(
@@ -99,6 +112,7 @@ class AppSettings {
       showAIAssistant: showAIAssistant ?? this.showAIAssistant,
       locationAccuracyLevel:
           locationAccuracyLevel ?? this.locationAccuracyLevel,
+      appLanguage: appLanguage ?? this.appLanguage,
       weatherCardOrder: weatherCardOrder ?? this.weatherCardOrder,
     );
   }
@@ -136,6 +150,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// 位置精度级别设置键
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
 
+  /// 应用语言设置键
+  static const String _keyAppLanguage = 'app_language';
+
   /// 天气卡片顺序设置键
   static const String _keyWeatherCardOrder = 'weather_card_order';
 
@@ -154,6 +171,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     if (savedLevel == 'street') {
       accuracyLevel = LocationAccuracyLevel.street;
     }
+
+    // 加载应用语言
+    final savedLanguage = prefs.getString(_keyAppLanguage);
+    final appLanguage = _parseAppLanguage(savedLanguage);
 
     // 加载并修复天气卡片顺序
     final savedOrder = prefs.getStringList(_keyWeatherCardOrder);
@@ -175,6 +196,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       showFeelsLike: prefs.getBool(_keyShowFeelsLike) ?? true,
       showAIAssistant: prefs.getBool(_keyShowAIAssistant) ?? true,
       locationAccuracyLevel: accuracyLevel,
+      appLanguage: appLanguage,
       weatherCardOrder: validatedOrder,
     );
   }
@@ -263,6 +285,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(locationAccuracyLevel: value);
   }
 
+  /// 设置应用语言
+  ///
+  /// [value]: 应用语言
+  Future<void> setAppLanguage(AppLanguage value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAppLanguage, _serializeAppLanguage(value));
+    state = state.copyWith(appLanguage: value);
+  }
+
   /// 设置天气卡片顺序
   ///
   /// [value]: 天气卡片顺序
@@ -300,6 +331,28 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     }
 
     return normalized;
+  }
+
+  AppLanguage _parseAppLanguage(String? value) {
+    switch (value) {
+      case 'zh_CN':
+        return AppLanguage.zhCN;
+      case 'en_US':
+        return AppLanguage.enUS;
+      default:
+        return AppLanguage.system;
+    }
+  }
+
+  String _serializeAppLanguage(AppLanguage value) {
+    switch (value) {
+      case AppLanguage.zhCN:
+        return 'zh_CN';
+      case AppLanguage.enUS:
+        return 'en_US';
+      case AppLanguage.system:
+        return 'system';
+    }
   }
 
   bool _listEquals(List<String> a, List<String> b) {

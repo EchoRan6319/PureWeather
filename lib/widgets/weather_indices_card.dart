@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../app_localizations.dart';
 import '../models/weather_models.dart';
 import '../core/theme/app_theme.dart';
 
@@ -36,10 +37,10 @@ class WeatherIndicesCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '生活指数',
+                  context.tr('生活指数'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -50,9 +51,7 @@ class WeatherIndicesCard extends StatelessWidget {
                 // 第一行
                 Row(
                   children: [
-                    Expanded(
-                      child: _IndexItem(index: displayIndices[0]),
-                    ),
+                    Expanded(child: _IndexItem(index: displayIndices[0])),
                     const SizedBox(width: 12),
                     Expanded(
                       child: displayIndices.length > 1
@@ -118,20 +117,20 @@ class _IndexItem extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            index.name,
+            context.tr(index.name),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
-            index.category,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+            context.tr(index.category),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app_localizations.dart';
 import '../models/weather_models.dart';
 import '../services/qweather_service.dart';
 import '../services/caiyun_service.dart';
@@ -230,7 +231,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         scene: scene,
         success: false,
         code: 'SETTING_DISABLED',
-        message: '实时更新开关未开启',
+        message: AppLocalizations.tr('实时更新开关未开启'),
         settingEnabled: false,
       );
       return;
@@ -242,7 +243,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         scene: scene,
         success: false,
         code: 'NON_ANDROID_PLATFORM',
-        message: '当前平台不是 Android',
+        message: AppLocalizations.tr('当前平台不是 Android'),
         settingEnabled: true,
         isAndroid: false,
       );
@@ -256,7 +257,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         scene: scene,
         success: false,
         code: 'NO_WEATHER_DATA',
-        message: '当前没有可用于实时更新的天气数据',
+        message: AppLocalizations.tr('当前没有可用于实时更新的天气数据'),
         settingEnabled: true,
         isAndroid: isAndroid,
         hasWeatherData: false,
@@ -274,7 +275,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         scene: scene,
         success: false,
         code: 'ANDROID_VERSION_UNSUPPORTED',
-        message: '当前系统不支持实时更新通知（需 Android 16+）',
+        message: AppLocalizations.tr('当前系统不支持实时更新通知（需 Android 16+）'),
         settingEnabled: true,
         isAndroid: isAndroid,
         hasWeatherData: hasWeatherData,
@@ -293,7 +294,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         scene: scene,
         success: false,
         code: 'PROMOTED_PERMISSION_DENIED',
-        message: '系统未允许应用发布 Promoted 实时更新通知',
+        message: AppLocalizations.tr('系统未允许应用发布 Promoted 实时更新通知'),
         settingEnabled: true,
         isAndroid: isAndroid,
         hasWeatherData: hasWeatherData,
@@ -312,7 +313,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         scene: scene,
         success: false,
         code: 'NOTIFICATION_PERMISSION_DENIED',
-        message: '未授予通知权限',
+        message: AppLocalizations.tr('未授予通知权限'),
         settingEnabled: true,
         isAndroid: isAndroid,
         hasWeatherData: hasWeatherData,
@@ -324,8 +325,14 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
       return;
     }
 
-    final content =
-        '${weatherData.current.text} · 体感${weatherData.current.feelsLike}° · ${_formatTime(weatherData.lastUpdated)} 更新';
+    final content = AppLocalizations.tr(
+      '{text} · 体感{feelsLike}° · {time} 更新',
+      args: {
+        'text': AppLocalizations.tr(weatherData.current.text),
+        'feelsLike': weatherData.current.feelsLike,
+        'time': _formatTime(weatherData.lastUpdated),
+      },
+    );
 
     final result = await notificationServiceProvider
         .showAndroidLiveWeatherUpdateDetailed(
@@ -358,15 +365,15 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
   String _getSeverityText(String level) {
     switch (level) {
       case '红色':
-        return '🔴 红色预警 - 极端天气';
+        return AppLocalizations.tr('🔴 红色预警 - 极端天气');
       case '橙色':
-        return '🟠 橙色预警 - 严重天气';
+        return AppLocalizations.tr('🟠 橙色预警 - 严重天气');
       case '黄色':
-        return '🟡 黄色预警 - 较重天气';
+        return AppLocalizations.tr('🟡 黄色预警 - 较重天气');
       case '蓝色':
-        return '🔵 蓝色预警 - 一般天气';
+        return AppLocalizations.tr('🔵 蓝色预警 - 一般天气');
       default:
-        return level;
+        return AppLocalizations.tr(level);
     }
   }
 

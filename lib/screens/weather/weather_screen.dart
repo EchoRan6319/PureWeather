@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
+import '../../app_localizations.dart';
 import '../../models/weather_models.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
@@ -200,7 +201,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                       const SizedBox(width: 4),
                     ],
                     Text(
-                      location?.name ?? '未知位置',
+                      location?.name ?? context.tr('未知位置'),
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w500),
                     ),
@@ -211,7 +212,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   child: IconButton(
                     icon: const Icon(Icons.navigation_outlined),
                     onPressed: _showCitySelector,
-                    tooltip: '导航',
+                    tooltip: context.tr('导航'),
                   ),
                 ),
               ],
@@ -256,7 +257,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  weather.current.text,
+                  context.tr(weather.current.text),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
@@ -267,7 +268,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildTempInfo(
-                  '最高',
+                  context.tr('最高'),
                   '${WeatherCode.convertTemperature(weather.daily.first.tempMax, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                 ),
                 Container(
@@ -277,7 +278,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   color: Theme.of(context).colorScheme.outline,
                 ),
                 _buildTempInfo(
-                  '最低',
+                  context.tr('最低'),
                   '${WeatherCode.convertTemperature(weather.daily.first.tempMin, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                 ),
                 Container(
@@ -287,7 +288,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   color: Theme.of(context).colorScheme.outline,
                 ),
                 _buildTempInfo(
-                  '体感',
+                  context.tr('体感'),
                   '${WeatherCode.convertTemperature(weather.current.feelsLike, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                 ),
               ],
@@ -352,7 +353,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '加载天气失败',
+                    context.tr('加载天气失败'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.error,
                       fontWeight: FontWeight.bold,
@@ -370,7 +371,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   FilledButton.icon(
                     onPressed: _onRefresh,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('重试'),
+                    label: Text(context.tr('重试')),
                   ),
                 ],
               ),
@@ -408,14 +409,14 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '请先添加城市',
+                  context.tr('请先添加城市'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '点击右上角“导航”按钮手动添加城市',
+                  context.tr('点击右上角“导航”按钮手动添加城市'),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -431,7 +432,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   Widget _buildEmptyStateAction() {
     return IconButton.filledTonal(
       onPressed: _showCitySelector,
-      tooltip: '导航',
+      tooltip: context.tr('导航'),
       icon: const Icon(Icons.navigation_outlined),
     );
   }
@@ -549,12 +550,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text('降雨预测', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  context.tr('降雨预测'),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              rain.description,
+              context.tr(rain.description),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -596,7 +600,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '详细信息',
+                  context.tr('详细信息'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -610,15 +614,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Expanded(
                   child: _buildDetailItem(
                     Icons.air,
-                    current.windDir,
-                    '${current.windScale}级',
+                    context.tr(current.windDir),
+                    context.tr('{value}级', args: {'value': current.windScale}),
                     null,
                   ),
                 ),
                 Expanded(
                   child: _buildDetailItem(
                     Icons.water_drop,
-                    '湿度',
+                    context.tr('湿度'),
                     '${current.humidity}%',
                     null,
                   ),
@@ -627,7 +631,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   child: todayDaily != null
                       ? _buildDetailItem(
                           Icons.wb_twilight,
-                          '日出',
+                          context.tr('日出'),
                           todayDaily.sunrise,
                           null,
                         )
@@ -642,7 +646,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Expanded(
                   child: _buildDetailItem(
                     Icons.visibility,
-                    '能见度',
+                    context.tr('能见度'),
                     '${current.vis} km',
                     null,
                   ),
@@ -650,7 +654,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Expanded(
                   child: _buildDetailItem(
                     Icons.compress,
-                    '气压',
+                    context.tr('气压'),
                     '${current.pressure} hPa',
                     null,
                   ),
@@ -659,7 +663,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   child: todayDaily != null
                       ? _buildDetailItem(
                           Icons.nights_stay,
-                          '日落',
+                          context.tr('日落'),
                           todayDaily.sunset,
                           null,
                         )
@@ -819,8 +823,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
   Future<void> _getCurrentLocation() async {
     try {
       final locationService = ref.read(locationServiceProvider);
-      final accuracyLevel =
-          ref.read(settingsProvider).locationAccuracyLevel;
+      final accuracyLevel = ref.read(settingsProvider).locationAccuracyLevel;
       final position = await locationService.getCurrentPosition();
 
       if (position != null) {
@@ -833,8 +836,8 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('无法获取位置，请检查权限设置'),
+            SnackBar(
+              content: Text(context.tr('无法获取位置，请检查权限设置')),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -844,7 +847,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('定位失败: $e'),
+            content: Text(context.tr('定位失败: {error}', args: {'error': e})),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -856,16 +859,16 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除城市'),
-        content: Text('确定删除 ${city.name} 吗？'),
+        title: Text(context.tr('删除城市')),
+        content: Text(context.tr('确定删除 {city} 吗？', args: {'city': city.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(context.tr('取消')),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('删除'),
+            child: Text(context.tr('删除')),
           ),
         ],
       ),
@@ -924,7 +927,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                       TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: '搜索城市',
+                          hintText: context.tr('搜索城市'),
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
@@ -948,7 +951,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.my_location),
-                          label: const Text('定位当前位置'),
+                          label: Text(context.tr('定位当前位置')),
                           onPressed: _getCurrentLocation,
                         ),
                       ),
@@ -997,7 +1000,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
             ),
             trailing: FilledButton.tonal(
               onPressed: () => widget.onCitySelected(location),
-              child: const Text('添加'),
+              child: Text(context.tr('添加')),
             ),
           ),
         );
@@ -1027,14 +1030,14 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              '还没有添加城市',
+              context.tr('还没有添加城市'),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              '搜索城市或使用定位添加',
+              context.tr('搜索城市或使用定位添加'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1123,7 +1126,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '定位',
+                          context.tr('定位'),
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: context.uiTokens.selectedForeground,
@@ -1153,7 +1156,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                       ),
                     ),
                     child: Text(
-                      '默认',
+                      context.tr('默认'),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: context.uiTokens.selectedForeground,
                         fontWeight: FontWeight.w700,
@@ -1213,8 +1216,10 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                       final locationState = ref.read(locationInitProvider);
                       if (locationState.error != null && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('已删除全部城市，定位失败。请搜索城市或检查定位权限。'),
+                          SnackBar(
+                            content: Text(
+                              context.tr('已删除全部城市，定位失败。请搜索城市或检查定位权限。'),
+                            ),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );

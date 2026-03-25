@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../app_localizations.dart';
 import '../models/weather_models.dart';
 import '../core/theme/app_theme.dart';
 
 /// 空气质量卡片组件
-/// 
+///
 /// 显示空气质量指数和各种污染物数据
 class AirQualityCard extends StatelessWidget {
   /// 空气质量数据
   final AirQuality airQuality;
 
   /// 构造函数
-  /// 
+  ///
   /// [airQuality]: 空气质量数据
   const AirQualityCard({super.key, required this.airQuality});
 
@@ -39,7 +40,7 @@ class AirQualityCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '空气质量',
+                  context.tr('空气质量'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -57,7 +58,7 @@ class AirQualityCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        airQuality.category,
+                        context.tr(airQuality.category),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w500,
                           color: _getAqiColor(context),
@@ -65,7 +66,10 @@ class AirQualityCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '主要污染物: ${_getMainPollutant()}',
+                        context.tr(
+                          '主要污染物: {value}',
+                          args: {'value': _getMainPollutant()},
+                        ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -85,7 +89,7 @@ class AirQualityCard extends StatelessWidget {
   }
 
   /// 构建AQI圆形显示
-  /// 
+  ///
   /// [context]: 上下文
   Widget _buildAqiCircle(BuildContext context) {
     return Container(
@@ -125,7 +129,7 @@ class AirQualityCard extends StatelessWidget {
   }
 
   /// 构建污染物数据网格
-  /// 
+  ///
   /// [context]: 上下文
   Widget _buildPollutantsGrid(BuildContext context) {
     final pollutants = [
@@ -157,7 +161,7 @@ class AirQualityCard extends StatelessWidget {
   }
 
   /// 构建单个污染物数据项
-  /// 
+  ///
   /// [context]: 上下文
   /// [p]: 污染物数据 (名称, 值, 单位)
   Widget _buildPollutantItem(BuildContext context, (String, String, String) p) {
@@ -187,7 +191,7 @@ class AirQualityCard extends StatelessWidget {
   }
 
   /// 根据AQI值获取对应颜色
-  /// 
+  ///
   /// [context]: 上下文
   Color _getAqiColor(BuildContext context) {
     final aqi = int.tryParse(airQuality.aqi) ?? 0;

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../app_localizations.dart';
 import '../services/scheduled_broadcast_service.dart';
 
 /// 定时时间类，用于表示定时播报的时间设置
@@ -75,8 +76,8 @@ class ScheduledTime {
   /// - 20:00 显示为"晚间播报"
   /// - 其他时间显示为格式化时间
   String get displayName {
-    if (hour == 7 && minute == 0) return '早上播报';
-    if (hour == 20 && minute == 0) return '晚间播报';
+    if (hour == 7 && minute == 0) return AppLocalizations.tr('早上播报');
+    if (hour == 20 && minute == 0) return AppLocalizations.tr('晚间播报');
     return formattedTime;
   }
 }
