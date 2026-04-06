@@ -34,6 +34,28 @@ cd PureWeather
 flutter pub get
 ```
 
+### Android Studio 配置
+
+如果你换了电脑或首次克隆项目，Android Studio 可能会报错：
+
+```
+flutter.sdk not set in local.properties
+```
+
+**解决方法：**
+
+编辑 `android/local.properties` 文件，添加 Flutter SDK 路径：
+
+```properties
+sdk.dir=C\:\\Users\\你的用户名\\AppData\\Local\\Android\\Sdk
+flutter.sdk=你的Flutter SDK路径
+```
+
+**注意事项：**
+- `flutter.sdk` 指向 Flutter SDK 根目录，不是 `bin` 目录
+- Windows 路径示例：`flutter.sdk=D\:\\flutter`（反斜杠转义为 `\\`，冒号转义为 `\\:`）
+- macOS/Linux 路径示例：`flutter.sdk=/Users/你的用户名/flutter`
+
 ### API 配置
 
 在项目根目录创建 `.env` 文件：
