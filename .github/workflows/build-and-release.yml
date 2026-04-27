@@ -159,10 +159,6 @@ jobs:
       - name: Create MSIX installer
         shell: pwsh
         run: |
-          # Ensure PNG icon exists for MSIX packaging
-          if (-not (Test-Path "assets/icons/app_icon.png")) {
-            dart run scripts/generate_msix_icon.dart
-          }
           # Create a self-signed certificate for MSIX signing
           $cert = New-SelfSignedCertificate -Type Custom `
             -Subject "CN=PureWeather, O=EchoRan, C=CN" `
@@ -183,6 +179,24 @@ jobs:
         with:
           name: windows-msix-x86_64
           path: build/windows/x64/runner/Release/*.msix
+          if-no-files-found: error
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+      - name: Create Inno Setup installer
+        shell: pwsh
+        run: |
+          # Determine version from git tag or use dev build
+          $version = "$env:GITHUB_REF_NAME" -replace '^v', ''
+          if ($version -eq "main") {
+            $version = "0.0.0-dev.$env:GITHUB_RUN_NUMBER"
+          }
+          iscc scripts/setup.iss /DMyAppVersion="$version"
+      - name: Upload Inno Setup installer artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: windows-innosetup-x86_64
+          path: build/windows/installer/*.exe
           if-no-files-found: error
 
   # ============================================================================
@@ -213,6 +227,12 @@ jobs:
           path: dist/windows
           pattern: windows-msix-*
           merge-multiple: true
+      - name: Download Inno Setup artifacts
+        uses: actions/download-artifact@v4.1.9
+        with:
+          path: dist/windows
+          pattern: windows-innosetup-*
+          merge-multiple: true
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -221,3 +241,4 @@ jobs:
             dist/android/*.apk
             dist/windows/*.zip
             dist/windows/*.msix
+            dist/windows/*.exe
