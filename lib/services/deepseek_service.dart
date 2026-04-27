@@ -117,7 +117,7 @@ $dataSection''';
       final response = await _dio.post<ResponseBody>(
         '$_baseUrl/chat/completions',
         data: {
-          'model': 'deepseek-chat',
+          'model': 'deepseek-v4-flash',
           'messages': messages,
           'stream': true,
           'temperature': 0.7,
@@ -150,8 +150,8 @@ $dataSection''';
           }
 
           try {
-            final json = jsonDecode(data);
-            final content = json['choices']?[0]?['delta']?['content'];
+            final parsed = jsonDecode(data);
+            final content = parsed['choices']?[0]?['delta']?['content'];
             if (content != null) {
               // Keep whitespace between streamed chunks; trim only at final stage.
               yield _sanitizeAiResponse(content, trim: false);

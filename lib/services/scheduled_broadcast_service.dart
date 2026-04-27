@@ -30,7 +30,7 @@ class ScheduledBroadcastService {
   }
 
   /// 天气服务实例
-  final QWeatherService _weatherService = QWeatherService();
+  QWeatherService _weatherService = QWeatherService();
 
   /// 定时器，用于桌面端补偿
   Timer? _pulseTimer;
@@ -62,6 +62,11 @@ class ScheduledBroadcastService {
 
   /// 是否已初始化
   bool _isInitialized = false;
+
+  /// 更新天气服务实例，确保使用最新配置（语言等）
+  void updateWeatherService(QWeatherService service) {
+    _weatherService = service;
+  }
 
   /// 初始化定时播报服务
   Future<void> initialize() async {

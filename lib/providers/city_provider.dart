@@ -217,7 +217,7 @@ class CityController extends StateNotifier<List<Location>> {
     if (oldIndex < 0 ||
         oldIndex >= state.length ||
         newIndex < 0 ||
-        newIndex > state.length) {
+        newIndex >= state.length) {
       return;
     }
 

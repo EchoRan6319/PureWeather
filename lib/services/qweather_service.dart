@@ -57,40 +57,36 @@ class QWeatherService {
   ///
   /// 返回位置信息
   Future<Location> searchLocation(String query) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/geo/lookup',
-        queryParameters: {
-          'location': query,
-          'lang': _languageCode,
-          'key': _apiKey,
-        },
-      );
+    final response = await _dio.get(
+      '$_baseUrl/geo/lookup',
+      queryParameters: {
+        'location': query,
+        'lang': _languageCode,
+        'key': _apiKey,
+      },
+    );
 
-      final data = response.data;
-      if (data['code'] == '200' && data['location'] != null) {
-        final locations = data['location'] as List;
-        if (locations.isNotEmpty) {
-          final loc = locations.first;
-          return Location(
-            id: loc['id'],
-            name: loc['name'],
-            adm1: loc['adm1'] ?? '',
-            adm2: loc['adm2'] ?? '',
-            country: loc['country'] ?? AppLocalizations.tr('中国'),
-            lat: double.parse(loc['lat'].toString()),
-            lon: double.parse(loc['lon'].toString()),
-            tz: loc['tz'] ?? 'Asia/Shanghai',
-            utcOffset: loc['utcOffset'] ?? '+08:00',
-            isDefault: false,
-            sortOrder: 0,
-          );
-        }
+    final data = response.data;
+    if (data['code'] == '200' && data['location'] != null) {
+      final locations = data['location'] as List;
+      if (locations.isNotEmpty) {
+        final loc = locations.first;
+        return Location(
+          id: loc['id'],
+          name: loc['name'],
+          adm1: loc['adm1'] ?? '',
+          adm2: loc['adm2'] ?? '',
+          country: loc['country'] ?? AppLocalizations.tr('中国'),
+          lat: double.parse(loc['lat'].toString()),
+          lon: double.parse(loc['lon'].toString()),
+          tz: loc['tz'] ?? 'Asia/Shanghai',
+          utcOffset: loc['utcOffset'] ?? '+08:00',
+          isDefault: false,
+          sortOrder: 0,
+        );
       }
-      throw Exception('Location not found');
-    } catch (e) {
-      rethrow;
     }
+    throw Exception('Location not found');
   }
 
   /// 根据坐标搜索位置
@@ -172,8 +168,6 @@ class QWeatherService {
           errorMsg = AppLocalizations.tr('网络请求失败');
       }
       throw Exception(errorMsg);
-    } catch (e) {
-      rethrow;
     }
   }
 
@@ -209,25 +203,21 @@ class QWeatherService {
   ///
   /// 返回当前天气信息
   Future<CurrentWeather> getCurrentWeather(String locationId) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/weather/now',
-        queryParameters: {
-          'location': locationId,
-          'lang': _languageCode,
-          'key': _apiKey,
-        },
-      );
+    final response = await _dio.get(
+      '$_baseUrl/weather/now',
+      queryParameters: {
+        'location': locationId,
+        'lang': _languageCode,
+        'key': _apiKey,
+      },
+    );
 
-      final data = response.data;
+    final data = response.data;
 
-      if (data['code'] == '200' && data['now'] != null) {
-        return CurrentWeather.fromJson(data['now']);
-      }
-      throw Exception('Weather data not available');
-    } catch (e) {
-      rethrow;
+    if (data['code'] == '200' && data['now'] != null) {
+      return CurrentWeather.fromJson(data['now']);
     }
+    throw Exception('Weather data not available');
   }
 
   /// 获取逐小时天气预报
@@ -279,26 +269,22 @@ class QWeatherService {
   ///
   /// 返回每日天气预报列表
   Future<List<DailyWeather>> getDailyWeather(String locationId) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/weather/7d',
-        queryParameters: {
-          'location': locationId,
-          'lang': _languageCode,
-          'key': _apiKey,
-        },
-      );
+    final response = await _dio.get(
+      '$_baseUrl/weather/7d',
+      queryParameters: {
+        'location': locationId,
+        'lang': _languageCode,
+        'key': _apiKey,
+      },
+    );
 
-      final data = response.data;
+    final data = response.data;
 
-      if (data['code'] == '200' && data['daily'] != null) {
-        final dailyList = data['daily'] as List;
-        return dailyList.map((e) => DailyWeather.fromJson(e)).toList();
-      }
-      return [];
-    } catch (e) {
-      rethrow;
+    if (data['code'] == '200' && data['daily'] != null) {
+      final dailyList = data['daily'] as List;
+      return dailyList.map((e) => DailyWeather.fromJson(e)).toList();
     }
+    return [];
   }
 
   /// 获取天气预警
@@ -335,35 +321,31 @@ class QWeatherService {
   ///
   /// 返回空气质量信息
   Future<AirQuality> getAirQuality(String locationId) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/air/now',
-        queryParameters: {
-          'location': locationId,
-          'lang': _languageCode,
-          'key': _apiKey,
-        },
-      );
+    final response = await _dio.get(
+      '$_baseUrl/air/now',
+      queryParameters: {
+        'location': locationId,
+        'lang': _languageCode,
+        'key': _apiKey,
+      },
+    );
 
-      final data = response.data;
-      if (data['code'] == '200' && data['now'] != null) {
-        final now = data['now'];
-        return AirQuality(
-          aqi: now['aqi'] ?? '0',
-          level: now['level'] ?? '',
-          category: now['category'] ?? '',
-          pm10: now['pm10'] ?? '0',
-          pm2p5: now['pm2p5'] ?? '0',
-          no2: now['no2'] ?? '0',
-          so2: now['so2'] ?? '0',
-          co: now['co'] ?? '0',
-          o3: now['o3'] ?? '0',
-        );
-      }
-      throw Exception('Air quality data not available');
-    } catch (e) {
-      rethrow;
+    final data = response.data;
+    if (data['code'] == '200' && data['now'] != null) {
+      final now = data['now'];
+      return AirQuality(
+        aqi: now['aqi'] ?? '0',
+        level: now['level'] ?? '',
+        category: now['category'] ?? '',
+        pm10: now['pm10'] ?? '0',
+        pm2p5: now['pm2p5'] ?? '0',
+        no2: now['no2'] ?? '0',
+        so2: now['so2'] ?? '0',
+        co: now['co'] ?? '0',
+        o3: now['o3'] ?? '0',
+      );
     }
+    throw Exception('Air quality data not available');
   }
 
   /// 获取天气指数

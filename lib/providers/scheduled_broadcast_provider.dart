@@ -185,8 +185,6 @@ class ScheduledBroadcastNotifier
       try {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         state = ScheduledBroadcastSettings.fromJson(json);
-        // 初始化时也同步一次设置
-        scheduledBroadcastServiceProvider.scheduleBroadcasts(state);
       } catch (_) {}
     }
   }

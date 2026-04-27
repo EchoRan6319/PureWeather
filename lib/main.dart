@@ -11,6 +11,7 @@ import 'core/constants/app_constants.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/scheduled_broadcast_provider.dart';
+import 'services/qweather_service.dart';
 import 'screens/main_screen.dart';
 import 'services/notification_service.dart';
 import 'services/scheduled_broadcast_service.dart';
@@ -69,6 +70,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   Future<void> _scheduleBroadcasts() async {
     final settings = ref.read(scheduledBroadcastProvider);
+    scheduledBroadcastServiceProvider.updateWeatherService(
+      ref.read(qweatherServiceProvider),
+    );
     await scheduledBroadcastServiceProvider.scheduleBroadcasts(settings);
   }
 
@@ -195,13 +199,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                           systemNavigationBarContrastEnforced: false,
                         );
 
-                final content = appSettings.predictiveBackEnabled
-                    ? PredictiveBackGestureHandler(child: child!)
-                    : child!;
-
                 return AnnotatedRegion<SystemUiOverlayStyle>(
                   value: overlayStyle,
-                  child: content,
+                  child: child!,
                 );
               },
               home: const MainScreen(),
@@ -243,25 +243,5 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       debugPrint('[DynamicColor] Native bypass failed: $e');
     }
     return null;
-  }
-}
-
-class PredictiveBackGestureHandler extends StatefulWidget {
-  final Widget child;
-
-  const PredictiveBackGestureHandler({super.key, required this.child});
-
-  @override
-  State<PredictiveBackGestureHandler> createState() =>
-      _PredictiveBackGestureHandlerState();
-}
-
-class _PredictiveBackGestureHandlerState
-    extends State<PredictiveBackGestureHandler> {
-  @override
-  Widget build(BuildContext context) {
-    // Predictive back logic is typically handled at the Navigator level or via specific platform channels.
-    // This wrapper ensures the subtree is correctly positioned.
-    return widget.child;
   }
 }

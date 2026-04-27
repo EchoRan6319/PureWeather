@@ -36,19 +36,15 @@ class CaiyunWeatherService {
   /// 
   /// 返回CaiyunMinuteRain实例
   Future<CaiyunMinuteRain> getMinuteRain(double lat, double lon) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/$_apiKey/$lon,$lat/forecast',
-      );
+    final response = await _dio.get(
+      '$_baseUrl/$_apiKey/$lon,$lat/forecast',
+    );
 
-      final data = response.data;
-      if (data['status'] == 'ok') {
-        return CaiyunMinuteRain.fromJson(data);
-      }
-      throw Exception('Caiyun weather data not available');
-    } catch (e) {
-      rethrow;
+    final data = response.data;
+    if (data['status'] == 'ok') {
+      return CaiyunMinuteRain.fromJson(data);
     }
+    throw Exception('Caiyun weather data not available');
   }
 
   /// 获取实时天气数据
@@ -58,19 +54,15 @@ class CaiyunWeatherService {
   /// 
   /// 返回实时天气数据的Map
   Future<Map<String, dynamic>> getRealtimeWeather(double lat, double lon) async {
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/$_apiKey/$lon,$lat/realtime',
-      );
+    final response = await _dio.get(
+      '$_baseUrl/$_apiKey/$lon,$lat/realtime',
+    );
 
-      final data = response.data;
-      if (data['status'] == 'ok') {
-        return data['result'];
-      }
-      throw Exception('Caiyun realtime data not available');
-    } catch (e) {
-      rethrow;
+    final data = response.data;
+    if (data['status'] == 'ok') {
+      return data['result'];
     }
+    throw Exception('Caiyun realtime data not available');
   }
 }
 

@@ -85,8 +85,7 @@ class LocationService {
           ),
         );
 
-        if (position != null &&
-            position.latitude != 0.0 &&
+        if (position.latitude != 0.0 &&
             position.longitude != 0.0) {
           return position;
         }

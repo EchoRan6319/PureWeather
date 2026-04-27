@@ -152,6 +152,16 @@ class SettingsScreen extends ConsumerWidget {
                                   value: appSettings
                                       .androidLiveUpdateNotificationEnabled,
                                   onChanged: (value) async {
+                                    final msgPermissionDenied = context.tr('未授予通知权限');
+                                    final msgUnsupported = context.tr(
+                                      '当前系统不支持实时更新通知（需 Android 16+）',
+                                    );
+                                    final msgUnsupportedSnack = context.tr(
+                                      '该功能仅支持 Android 16 及以上系统',
+                                    );
+                                    final msgPromotedDenied = context.tr(
+                                      '系统未允许应用发布 Promoted 实时更新通知',
+                                    );
                                     if (value) {
                                       final hasPermission =
                                           await notificationServiceProvider
@@ -162,7 +172,7 @@ class SettingsScreen extends ConsumerWidget {
                                           success: false,
                                           code:
                                               'NOTIFICATION_PERMISSION_DENIED',
-                                          message: context.tr('未授予通知权限'),
+                                          message: msgPermissionDenied,
                                           settingEnabled: true,
                                           isAndroid: true,
                                           notificationPermission: false,
@@ -181,9 +191,7 @@ class SettingsScreen extends ConsumerWidget {
                                           scene: 'settings_toggle',
                                           success: false,
                                           code: 'ANDROID_VERSION_UNSUPPORTED',
-                                          message: context.tr(
-                                            '当前系统不支持实时更新通知（需 Android 16+）',
-                                          ),
+                                          message: msgUnsupported,
                                           settingEnabled: true,
                                           isAndroid: true,
                                           isSupported: false,
@@ -194,9 +202,7 @@ class SettingsScreen extends ConsumerWidget {
                                           ).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                context.tr(
-                                                  '该功能仅支持 Android 16 及以上系统',
-                                                ),
+                                                msgUnsupportedSnack,
                                               ),
                                             ),
                                           );
@@ -212,9 +218,7 @@ class SettingsScreen extends ConsumerWidget {
                                           scene: 'settings_toggle',
                                           success: false,
                                           code: 'PROMOTED_PERMISSION_DENIED',
-                                          message: context.tr(
-                                            '系统未允许应用发布 Promoted 实时更新通知',
-                                          ),
+                                          message: msgPromotedDenied,
                                           settingEnabled: true,
                                           isAndroid: true,
                                           isSupported: true,

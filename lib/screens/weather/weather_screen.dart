@@ -71,13 +71,6 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     final weatherState = ref.watch(weatherProvider);
     final defaultCity = ref.watch(defaultCityProvider);
 
-    // 监听默认城市变化，自动加载新城市的天气
-    ref.listen(defaultCityProvider, (previous, next) {
-      if (next != null) {
-        ref.read(weatherProvider.notifier).loadWeather(next);
-      }
-    });
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool isWide = constraints.maxWidth > 900;
