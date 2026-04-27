@@ -1,7 +1,7 @@
 # ☁️ 轻氧天气 (PureWeather)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20Web-brightgreen)
+![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-brightgreen)
 ![Flutter](https://img.shields.io/badge/Flutter-3.41+-02569B?logo=flutter)
 
 一款使用 **Material You Design** 构建的现代化跨平台天气应用，支持动态主题色、多城市管理和 AI 天气助手。
@@ -18,18 +18,13 @@
 - **📊 天气详情** — 当前温度、24 小时预报、7 日预报、空气质量、生活指数、天气预警
 - **🤖 天气助手** — 基于 DeepSeek V4 的智能问答，支持天气分析与建议
 - **🔔 定时播报** — 每日早晚天气推送，Android 16+ 支持实时更新通知
-- **🔗 多平台支持** — Android、Windows、Web
 
 ## 平台支持
 
 | 平台 | 状态 |
 |------|------|
-| Android | ✅ 已测试（arm64-v8a / armeabi-v7a / x86_64） |
-| Windows | ✅ 已测试 |
-| Web | ✅ 已测试 |
-| iOS | ⚠️ 可构建，未经全面测试 |
-| macOS | ⚠️ 可构建，未经全面测试 |
-| Linux | ⚠️ 可构建，未经全面测试 |
+| Android | ✅ 
+| Windows | ✅ 
 
 ---
 
@@ -71,9 +66,6 @@ flutter run
 
 # Windows
 flutter run -d windows
-
-# Web
-flutter run -d web
 ```
 
 > 调试版使用 `applicationId` 后缀 `.debug`，可与正式版同时安装在手机上互不冲突。
@@ -114,12 +106,6 @@ build/app/outputs/flutter-apk/
 
 ```bash
 flutter build windows --release
-```
-
-### Web
-
-```bash
-flutter build web --release
 ```
 
 ### 自动版本号

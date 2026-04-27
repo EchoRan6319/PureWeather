@@ -1,4 +1,4 @@
-name: Build and Release (All Platforms)
+name: Build and Release
 
 on:
   push:
@@ -15,9 +15,9 @@ env:
 
 jobs:
   # ============================================================================
-  # Android Builds (single matrix flow: prod release per ABI + prod universal + debug universal)
+  # Android Builds (arm64 release + arm64 debug)
   # ============================================================================
-  build-android-matrix:
+  build-android:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -25,31 +25,11 @@ jobs:
         include:
           - mode: release
             mode_flag: --release
-            target_platform: android-arm64
             apk_file: app-release.apk
-            artifact_name: android-apk-prod-arm64v8a-release
-            output_suffix: android-arm64v8a-release
-          - mode: release
-            mode_flag: --release
-            target_platform: android-arm
-            apk_file: app-release.apk
-            artifact_name: android-apk-prod-armv7a-release
-            output_suffix: android-armv7a-release
-          - mode: release
-            mode_flag: --release
-            target_platform: android-x64
-            apk_file: app-release.apk
-            artifact_name: android-apk-prod-x86_64-release
-            output_suffix: android-x86_64-release
-          - mode: release
-            mode_flag: --release
-            target_platform: android-arm,android-arm64,android-x64
-            apk_file: app-release.apk
-            artifact_name: android-apk-universal-release
-            output_suffix: universal-release
+            artifact_name: android-apk-release
+            output_suffix: android-release
           - mode: debug
             mode_flag: --debug
-            target_platform: android-arm,android-arm64,android-x64
             apk_file: app-debug.apk
             artifact_name: android-apk-debug
             output_suffix: android-debug
@@ -97,7 +77,7 @@ jobs:
         run: |
           BUILD_NAME="${GITHUB_REF_NAME#v}"
           flutter build apk ${{ matrix.mode_flag }} \
-            --target-platform=${{ matrix.target_platform }} \
+            --target-platform=android-arm64 \
             -t lib/main.dart \
             --build-name="$BUILD_NAME" \
             --build-number="$GITHUB_RUN_NUMBER" \
@@ -182,206 +162,14 @@ jobs:
           if-no-files-found: error
 
   # ============================================================================
-  # Linux & Web Builds
-  # ============================================================================
-  build-linux-web:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-      - name: Install Linux build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Generate .env
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
-          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
-          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          cat > .env << EOF
-          QWEATHER_API_KEY=$QWEATHER_API_KEY
-          CAIYUN_API_KEY=$CAIYUN_API_KEY
-          AMAP_API_KEY=$AMAP_API_KEY
-          AMAP_WEB_KEY=$AMAP_WEB_KEY
-          DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
-          EOF
-      - name: Build Linux
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
-          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
-          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          BUILD_NAME="${GITHUB_REF_NAME#v}"
-          flutter build linux --release \
-            --build-name="$BUILD_NAME" \
-            --build-number="$GITHUB_RUN_NUMBER" \
-            --dart-define=QWEATHER_API_KEY="$QWEATHER_API_KEY" \
-            --dart-define=CAIYUN_API_KEY="$CAIYUN_API_KEY" \
-            --dart-define=AMAP_API_KEY="$AMAP_API_KEY" \
-            --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
-            --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
-      - name: Package Linux (tar.gz)
-        run: tar -C build/linux/x64/release -czf "build/linux/x64/release/PureWeather-${GITHUB_REF_NAME}-linux-x64-release.tar.gz" bundle
-      - name: Build Web
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
-          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
-          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          BUILD_NAME="${GITHUB_REF_NAME#v}"
-          flutter build web --release \
-            --build-name="$BUILD_NAME" \
-            --build-number="$GITHUB_RUN_NUMBER" \
-            --dart-define=QWEATHER_API_KEY="$QWEATHER_API_KEY" \
-            --dart-define=CAIYUN_API_KEY="$CAIYUN_API_KEY" \
-            --dart-define=AMAP_API_KEY="$AMAP_API_KEY" \
-            --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
-            --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
-      - name: Package Web artifact
-        run: cd build && zip -r "PureWeather-${GITHUB_REF_NAME}-web-release.zip" web
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: linux-package
-          path: build/linux/x64/release/PureWeather-*-linux-x64-release.tar.gz
-          if-no-files-found: error
-      - name: Upload Web artifact
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: web-package
-          path: build/PureWeather-*-web-release.zip
-          if-no-files-found: error
-
-  # ============================================================================
-  # Apple Builds (iOS & macOS)
-  # ============================================================================
-  build-apple:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Generate .env
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
-          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
-          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          cat > .env << EOF
-          QWEATHER_API_KEY=$QWEATHER_API_KEY
-          CAIYUN_API_KEY=$CAIYUN_API_KEY
-          AMAP_API_KEY=$AMAP_API_KEY
-          AMAP_WEB_KEY=$AMAP_WEB_KEY
-          DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
-          EOF
-      - name: Build iOS (release, no codesign)
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
-          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
-          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          BUILD_NAME="${GITHUB_REF_NAME#v}"
-          flutter build ios --release --no-codesign \
-            --build-name="$BUILD_NAME" \
-            --build-number="$GITHUB_RUN_NUMBER" \
-            --dart-define=QWEATHER_API_KEY="$QWEATHER_API_KEY" \
-            --dart-define=CAIYUN_API_KEY="$CAIYUN_API_KEY" \
-            --dart-define=AMAP_API_KEY="$AMAP_API_KEY" \
-            --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
-            --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
-      - name: Package iOS artifact (Unsigned IPA)
-        run: |
-          IOS_APP_PATH="$(find build/ios/iphoneos -maxdepth 1 -name '*.app' -print -quit)"
-          if [ -z "$IOS_APP_PATH" ]; then
-            echo "iOS app bundle not found"
-            exit 1
-          fi
-          mkdir -p build/ios/Payload
-          cp -r "$IOS_APP_PATH" build/ios/Payload/
-          cd build/ios && zip -r "PureWeather-${GITHUB_REF_NAME}-ios-release-unsigned.ipa" Payload
-          rm -rf Payload
-      - name: Build macOS (Universal Binary)
-        env:
-          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
-          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
-          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
-          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          BUILD_NAME="${GITHUB_REF_NAME#v}"
-          flutter build macos --release \
-            --build-name="$BUILD_NAME" \
-            --build-number="$GITHUB_RUN_NUMBER" \
-            --dart-define=QWEATHER_API_KEY="$QWEATHER_API_KEY" \
-            --dart-define=CAIYUN_API_KEY="$CAIYUN_API_KEY" \
-            --dart-define=AMAP_API_KEY="$AMAP_API_KEY" \
-            --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
-            --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
-      - name: Package macOS artifact (Universal DMG)
-        run: |
-          MACOS_APP_PATH="$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' -print -quit)"
-          if [ -z "$MACOS_APP_PATH" ]; then
-            echo "macOS app bundle not found"
-            exit 1
-          fi
-          brew install create-dmg || true
-          create-dmg \
-            --volname "PureWeather" \
-            --window-pos 200 120 \
-            --window-size 600 400 \
-            --icon-size 100 \
-            --app-drop-link 450 185 \
-            "build/macos/PureWeather-${GITHUB_REF_NAME}-macos-universal.dmg" \
-            "$MACOS_APP_PATH" || \
-          ditto -c -k --sequesterRsrc --keepParent "$MACOS_APP_PATH" "build/macos/PureWeather-${GITHUB_REF_NAME}-macos-universal.zip"
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: ios-package
-          path: build/ios/PureWeather-*-ios-release-unsigned.ipa
-          if-no-files-found: error
-      - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: macos-package
-          path: build/macos/PureWeather-*-macos-universal.*
-          if-no-files-found: error
-
-  # ============================================================================
   # Release
   # ============================================================================
   release:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     needs:
-      - build-android-matrix
+      - build-android
       - build-windows-x86_64
-      - build-linux-web
-      - build-apple
     steps:
       - name: Download Android artifacts
         uses: actions/download-artifact@v4.1.9
@@ -395,26 +183,6 @@ jobs:
           path: dist/windows
           pattern: windows-package-*
           merge-multiple: true
-      - name: Download Linux artifact
-        uses: actions/download-artifact@v4.1.9
-        with:
-          name: linux-package
-          path: dist/linux
-      - name: Download Web artifact
-        uses: actions/download-artifact@v4.1.9
-        with:
-          name: web-package
-          path: dist/web
-      - name: Download iOS artifact
-        uses: actions/download-artifact@v4.1.9
-        with:
-          name: ios-package
-          path: dist/ios
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4.1.9
-        with:
-          name: macos-package
-          path: dist/macos
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -422,7 +190,3 @@ jobs:
           files: |
             dist/android/*.apk
             dist/windows/*.zip
-            dist/linux/*.tar.gz
-            dist/web/*.zip
-            dist/ios/*.ipa
-            dist/macos/*
