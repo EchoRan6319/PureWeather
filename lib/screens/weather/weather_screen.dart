@@ -260,26 +260,28 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildTempInfo(
-                  context.tr('最高'),
-                  '${WeatherCode.convertTemperature(weather.daily.first.tempMax, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
-                ),
-                Container(
-                  width: 1,
-                  height: 16,
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                _buildTempInfo(
-                  context.tr('最低'),
-                  '${WeatherCode.convertTemperature(weather.daily.first.tempMin, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
-                ),
-                Container(
-                  width: 1,
-                  height: 16,
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+                if (todayDaily != null) ...[
+                  _buildTempInfo(
+                    context.tr('最高'),
+                    '${WeatherCode.convertTemperature(todayDaily.tempMax, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                  ),
+                  Container(
+                    width: 1,
+                    height: 16,
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  _buildTempInfo(
+                    context.tr('最低'),
+                    '${WeatherCode.convertTemperature(todayDaily.tempMin, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                  ),
+                  Container(
+                    width: 1,
+                    height: 16,
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ],
                 _buildTempInfo(
                   context.tr('体感'),
                   '${WeatherCode.convertTemperature(weather.current.feelsLike, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
@@ -439,9 +441,6 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
 
     final settings = ref.watch(settingsProvider);
     final order = settings.weatherCardOrder;
-    final normalizedOrder = order.contains('hourly')
-        ? order
-        : ['hourly', ...order];
 
     return Padding(
       padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 0),
@@ -459,7 +458,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             const SizedBox(height: 12),
           ],
           // 根据设置的顺序显示天气卡片
-          ...normalizedOrder.map((key) {
+          ...order.map((key) {
             Widget? card;
             switch (key) {
               case 'hourly':
@@ -1165,7 +1164,13 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                 // 显示城市当前温度
                 weatherAsync.when(
                   data: (weather) {
-                    if (weather == null) return const SizedBox();
+                    if (weather == null) {
+                      return Icon(
+                        Icons.error_outline,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.error,
+                      );
+                    }
                     final settings = ref.watch(settingsProvider);
                     final convertedTemp = WeatherCode.convertTemperature(
                       weather.current.temp,
@@ -1184,7 +1189,11 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  error: (error, stackTrace) => const SizedBox(),
+                  error: (error, stackTrace) => Icon(
+                    Icons.error_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                 ),
                 // 删除按钮
                 IconButton(

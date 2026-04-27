@@ -15,7 +15,7 @@ env:
 
 jobs:
   # ============================================================================
-  # Android Builds (single matrix flow: prod release per ABI + prod universal + debugEdition debug universal)
+  # Android Builds (single matrix flow: prod release per ABI + prod universal + debug universal)
   # ============================================================================
   build-android-matrix:
     runs-on: ubuntu-latest
@@ -23,41 +23,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - flavor: prod
-            mode: release
+          - mode: release
             mode_flag: --release
             target_platform: android-arm64
-            apk_file: app-prod-release.apk
+            apk_file: app-release.apk
             artifact_name: android-apk-prod-arm64v8a-release
-            output_suffix: android-prod-arm64v8a-release
-          - flavor: prod
-            mode: release
+            output_suffix: android-arm64v8a-release
+          - mode: release
             mode_flag: --release
             target_platform: android-arm
-            apk_file: app-prod-release.apk
+            apk_file: app-release.apk
             artifact_name: android-apk-prod-armv7a-release
-            output_suffix: android-prod-armv7a-release
-          - flavor: prod
-            mode: release
+            output_suffix: android-armv7a-release
+          - mode: release
             mode_flag: --release
             target_platform: android-x64
-            apk_file: app-prod-release.apk
+            apk_file: app-release.apk
             artifact_name: android-apk-prod-x86_64-release
-            output_suffix: android-prod-x86_64-release
-          - flavor: prod
-            mode: release
+            output_suffix: android-x86_64-release
+          - mode: release
             mode_flag: --release
             target_platform: android-arm,android-arm64,android-x64
-            apk_file: app-prod-release.apk
-            artifact_name: android-apk-prod-universal-release
-            output_suffix: android-prod-universal-release
-          - flavor: debugEdition
-            mode: debug
+            apk_file: app-release.apk
+            artifact_name: android-apk-universal-release
+            output_suffix: universal-release
+          - mode: debug
             mode_flag: --debug
             target_platform: android-arm,android-arm64,android-x64
-            apk_file: app-debugedition-debug.apk
-            artifact_name: android-apk-debugedition-debug
-            output_suffix: android-debugedition-debug
+            apk_file: app-debug.apk
+            artifact_name: android-apk-debug
+            output_suffix: android-debug
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -88,7 +83,7 @@ jobs:
           AMAP_WEB_KEY=$AMAP_WEB_KEY
           DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
           EOF
-      - name: Build Android APK (${{ matrix.flavor }} / ${{ matrix.mode }})
+      - name: Build Android APK (${{ matrix.mode }})
         env:
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
           CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
@@ -102,7 +97,6 @@ jobs:
         run: |
           BUILD_NAME="${GITHUB_REF_NAME#v}"
           flutter build apk ${{ matrix.mode_flag }} \
-            --flavor=${{ matrix.flavor }} \
             --target-platform=${{ matrix.target_platform }} \
             -t lib/main.dart \
             --build-name="$BUILD_NAME" \

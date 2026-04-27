@@ -47,20 +47,6 @@ android {
         manifestPlaceholders["appName"] = "轻氧天气"
     }
 
-    flavorDimensions += "edition"
-    productFlavors {
-        create("prod") {
-            dimension = "edition"
-            applicationId = "com.echoran.pureweather"
-            manifestPlaceholders["appName"] = "轻氧天气"
-        }
-        create("debugEdition") {
-            dimension = "edition"
-            applicationId = "com.echoran.pureweatherdebug"
-            manifestPlaceholders["appName"] = "轻氧天气Debug"
-        }
-    }
-
     signingConfigs {
         create("release") {
             storeFile = rootProject.file(releaseStoreFilePath)
@@ -71,6 +57,10 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            manifestPlaceholders["appName"] = "轻氧天气Debug"
+        }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
