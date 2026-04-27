@@ -144,7 +144,13 @@ jobs:
           AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          $buildName = $env:GITHUB_REF_NAME -replace '^v', ''
+          # Determine build name from tag, or use dev version for branch pushes
+          $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
+          if ($ref -eq "main") {
+            $buildName = "0.0.0-dev"
+          } else {
+            $buildName = $ref
+          }
           flutter build windows --release `
             --build-name="$buildName" `
             --build-number="$env:GITHUB_RUN_NUMBER" `
@@ -189,9 +195,11 @@ jobs:
           # Refresh PATH to include iscc from Chocolatey
           $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')
           # Determine version from git tag or use dev build
-          $version = "$env:GITHUB_REF_NAME" -replace '^v', ''
-          if ($version -eq "main") {
-            $version = "0.0.0-dev.$env:GITHUB_RUN_NUMBER"
+          $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
+          if ($ref -eq "main") {
+            $version = "0.0.0.$env:GITHUB_RUN_NUMBER"
+          } else {
+            $version = $ref
           }
           iscc scripts/setup.iss /DMyAppVersion="$version"
       - name: Upload Inno Setup installer artifact
