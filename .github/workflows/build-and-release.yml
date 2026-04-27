@@ -186,19 +186,18 @@ jobs:
           name: windows-msix-x86_64
           path: build/windows/x64/runner/Release/*.msix
           if-no-files-found: error
-      - name: Install Inno Setup & create installer
+      - name: Build Inno Setup installer
         shell: pwsh
         run: |
-          # Install Inno Setup via Chocolatey
-          choco install innosetup --no-progress -y
-          # Find iscc.exe
-          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"
-          if (Test-Path $iscc) {
-            Write-Host "Using iscc: $iscc"
-          } else {
-            Write-Host "iscc not found at $iscc, trying PATH..."
-            $iscc = "iscc"
-          }
+          # Download Inno Setup portable
+          $innoUrl = "https://github.com/jrsoftware/issrc/releases/download/is-6_4_2/InnoSetup-6.4.2.exe"
+          $installer = "$env:TEMP\innosetup.exe"
+          Invoke-WebRequest -Uri $innoUrl -OutFile $installer -UseBasicParsing
+          # Extract without installing (Inno Setup supports /VERYSILENT /SUPPRESSMSGBOXES)
+          $innoDir = "$env:TEMP\InnoSetup"
+          Start-Process -Wait -FilePath $installer -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /DIR=`"$innoDir`""
+          $iscc = "$innoDir\iscc.exe"
+          if (-not (Test-Path $iscc)) { throw "iscc.exe not found at $iscc" }
           # Determine version from git tag or use dev build
           $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
           if ($ref -eq "main") {
