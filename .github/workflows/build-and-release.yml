@@ -147,12 +147,12 @@ jobs:
           # Determine build name from tag, or use dev version for branch pushes
           $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
           if ($ref -eq "main") {
-            $buildName = "0.0.0-dev"
+            $appVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
           } else {
-            $buildName = $ref
+            $appVersion = "$ref.0"
           }
           flutter build windows --release `
-            --build-name="$buildName" `
+            --build-name="$appVersion" `
             --build-number="$env:GITHUB_RUN_NUMBER" `
             --dart-define=QWEATHER_API_KEY="$env:QWEATHER_API_KEY" `
             --dart-define=CAIYUN_API_KEY="$env:CAIYUN_API_KEY" `
@@ -165,6 +165,13 @@ jobs:
       - name: Create MSIX installer
         shell: pwsh
         run: |
+          # Determine version from git tag or use dev build
+          $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
+          if ($ref -eq "main") {
+            $version = "0.0.0.$env:GITHUB_RUN_NUMBER"
+          } else {
+            $version = "$ref.0"
+          }
           # Create a self-signed certificate for MSIX signing
           $cert = New-SelfSignedCertificate -Type Custom `
             -Subject "CN=PureWeather, O=EchoRan, C=CN" `
@@ -173,7 +180,7 @@ jobs:
             -CertStoreLocation "Cert:\CurrentUser\My"
           $password = ConvertTo-SecureString -String "PureWeather@2026" -Force -AsPlainText
           Export-PfxCertificate -Cert $cert -FilePath "cert.pfx" -Password $password
-          dart run msix:create --build-windows=false --certificate-path=cert.pfx --certificate-password=PureWeather@2026 --install-certificate=false
+          dart run msix:create --build-windows=false --certificate-path=cert.pfx --certificate-password=PureWeather@2026 --install-certificate=false --version="$version"
       - name: Upload portable ZIP artifact
         uses: actions/upload-artifact@v4.6.1
         with:
@@ -201,12 +208,12 @@ jobs:
           # Determine version from git tag or use dev build
           $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
           if ($ref -eq "main") {
-            $version = "0.0.0.$env:GITHUB_RUN_NUMBER"
+            $appVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
           } else {
-            $version = $ref
+            $appVersion = "$ref.0"
           }
           # Run iscc and capture output
-          & $iscc scripts/setup.iss /DMyAppVersion="$version" 2>&1
+          & $iscc scripts/setup.iss /DMyAppVersion="$appVersion" 2>&1
           if ($LASTEXITCODE -ne 0) { throw "iscc failed with exit code $LASTEXITCODE" }
       - name: Upload Inno Setup installer artifact
         uses: actions/upload-artifact@v4.6.1
