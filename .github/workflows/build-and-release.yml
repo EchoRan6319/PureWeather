@@ -166,8 +166,11 @@ jobs:
         run: |
           $tag = "${{ steps.release_tag.outputs.tag }}"
           $isPrerelease = ("$env:GITHUB_REF_TYPE" -ne "tag")
-          gh release create $tag --title "PureWeather $tag" --generate-notes $(if ($isPrerelease) { "--prerelease" }) 2>&1 | Out-Null
+          $args = @($tag, "--title", "PureWeather $tag", "--generate-notes")
+          if ($isPrerelease) { $args += "--prerelease" }
+          gh release create @args 2>&1 | Out-Null
           echo "Release tag: $tag (exists or created)"
+          exit 0
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Set up Flutter
