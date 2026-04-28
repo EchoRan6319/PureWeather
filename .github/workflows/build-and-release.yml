@@ -36,11 +36,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Get version from git tag
+        id: version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          echo "raw=$LATEST_TAG"
+          echo "raw=$LATEST_TAG" >> $GITHUB_OUTPUT
+          VERSION="${LATEST_TAG#v}"
+          echo "version=$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
       - name: Install dependencies
         run: flutter pub get
       - name: Restore Android release keystore
@@ -75,7 +93,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          BUILD_NAME="${GITHUB_REF_NAME#v}"
+          BUILD_NAME="${{ steps.version.outputs.version }}"
           flutter build apk ${{ matrix.mode_flag }} \
             --target-platform=android-arm64 \
             -t lib/main.dart \
@@ -94,7 +112,7 @@ jobs:
             ls -la build/app/outputs/flutter-apk || true
             exit 1
           fi
-          cp "$APK_PATH" "build/app/outputs/flutter-apk/PureWeather-${GITHUB_REF_NAME}-${{ matrix.output_suffix }}.apk"
+          cp "$APK_PATH" "build/app/outputs/flutter-apk/PureWeather-${{ steps.version.outputs.version }}-${{ matrix.output_suffix }}.apk"
       - name: Upload artifact
         uses: actions/upload-artifact@v4.6.1
         with:
@@ -110,6 +128,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Get version from git tag
+        id: version
+        shell: pwsh
+        run: |
+          $raw = git describe --tags --abbrev=0
+          if (-not $raw) { $raw = "0.0.0" }
+          $version = $raw -replace '^v', ''
+          echo "raw=$raw" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding UTF8 -Append
+          echo "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding UTF8 -Append
+          echo "Using version: $version"
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -142,18 +172,14 @@ jobs:
           AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          # Parse version from tag: v5.4.0-1 → display=5.4.0-1, numeric=5.4.0.1
-          $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
-          if ($ref -eq "main") {
-            $displayVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
-            $numericVersion = $displayVersion
-          } else {
-            $parts = $ref -split '-'
-            $displayVersion = $ref
-            $baseVersion = $parts[0]
-            $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
-            $numericVersion = "$baseVersion.$buildPart"
-          }
+          # Parse version from git describe output
+          $ref = "${{ steps.version.outputs.version }}"
+          $parts = $ref -split '-'
+          $displayVersion = $ref
+          $baseVersion = $parts[0]
+          $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
+          $numericVersion = "$baseVersion.$buildPart"
+          echo "Display: $displayVersion, Numeric: $numericVersion"
           flutter build windows --release `
             --build-name="$displayVersion" `
             --build-number="$env:GITHUB_RUN_NUMBER" `
@@ -164,20 +190,17 @@ jobs:
             --dart-define=DEEPSEEK_API_KEY="$env:DEEPSEEK_API_KEY"
       - name: Package artifact (portable ZIP)
         shell: pwsh
-        run: Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/PureWeather-$env:GITHUB_REF_NAME-windows-x86_64-release.zip" -Force
+        run: Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/PureWeather-${{ steps.version.outputs.version }}-windows-x86_64-release.zip" -Force
       - name: Create MSIX installer
         shell: pwsh
         run: |
-          # Parse version from tag: v5.4.0-1 → numeric=5.4.0.1
-          $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
-          if ($ref -eq "main") {
-            $version = "0.0.0.$env:GITHUB_RUN_NUMBER"
-          } else {
-            $parts = $ref -split '-'
-            $baseVersion = $parts[0]
-            $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
-            $version = "$baseVersion.$buildPart"
-          }
+          # Parse numeric version from git describe output
+          $ref = "${{ steps.version.outputs.version }}"
+          $parts = $ref -split '-'
+          $baseVersion = $parts[0]
+          $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
+          $version = "$baseVersion.$buildPart"
+          echo "MSIX version: $version"
           # Create a self-signed certificate for MSIX signing
           $cert = New-SelfSignedCertificate -Type Custom `
             -Subject "CN=PureWeather, O=EchoRan, C=CN" `
@@ -211,17 +234,13 @@ jobs:
           }
           Write-Host "Using iscc: $iscc"
           if (-not (Test-Path $iscc)) { throw "iscc.exe not found" }
-          # Determine version from git tag or use dev build
-          # Parse version from tag: v5.4.0-1 → numeric=5.4.0.1
-          $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
-          if ($ref -eq "main") {
-            $appVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
-          } else {
-            $parts = $ref -split '-'
-            $baseVersion = $parts[0]
-            $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
-            $appVersion = "$baseVersion.$buildPart"
-          }
+          # Parse numeric version from git describe output
+          $ref = "${{ steps.version.outputs.version }}"
+          $parts = $ref -split '-'
+          $baseVersion = $parts[0]
+          $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
+          $appVersion = "$baseVersion.$buildPart"
+          echo "Inno Setup version: $appVersion"
           # Run iscc and capture output
           & $iscc scripts/setup.iss /DMyAppVersion="$appVersion" 2>&1
           if ($LASTEXITCODE -ne 0) { throw "iscc failed with exit code $LASTEXITCODE" }
@@ -236,12 +255,22 @@ jobs:
   # Release
   # ============================================================================
   release:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: needs.build-windows-x86_64.result == 'success'
     runs-on: ubuntu-latest
     needs:
       - build-android
       - build-windows-x86_64
     steps:
+      - name: Determine release tag and name
+        id: release
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "name=Release ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=dev-build-${{ github.run_number }}" >> $GITHUB_OUTPUT
+            echo "name=Dev Build #${{ github.run_number }}" >> $GITHUB_OUTPUT
+          fi
       - name: Download Android artifacts
         uses: actions/download-artifact@v4.1.9
         with:
@@ -269,7 +298,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: ${{ steps.release.outputs.name }}
+          generate_release_notes: true
           files: |
             dist/android/*.apk
             dist/windows/*.zip
