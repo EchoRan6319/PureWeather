@@ -144,15 +144,20 @@ jobs:
           AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          # Determine build name from tag, or use dev version for branch pushes
+          # Parse version from tag: v5.4.0-1 → display=5.4.0-1, numeric=5.4.0.1
           $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
           if ($ref -eq "main") {
-            $appVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
+            $displayVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
+            $numericVersion = $displayVersion
           } else {
-            $appVersion = "$ref.0"
+            $parts = $ref -split '-'
+            $displayVersion = $ref
+            $baseVersion = $parts[0]
+            $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
+            $numericVersion = "$baseVersion.$buildPart"
           }
           flutter build windows --release `
-            --build-name="$appVersion" `
+            --build-name="$displayVersion" `
             --build-number="$env:GITHUB_RUN_NUMBER" `
             --dart-define=QWEATHER_API_KEY="$env:QWEATHER_API_KEY" `
             --dart-define=CAIYUN_API_KEY="$env:CAIYUN_API_KEY" `
@@ -165,12 +170,15 @@ jobs:
       - name: Create MSIX installer
         shell: pwsh
         run: |
-          # Determine version from git tag or use dev build
+          # Parse version from tag: v5.4.0-1 → numeric=5.4.0.1
           $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
           if ($ref -eq "main") {
             $version = "0.0.0.$env:GITHUB_RUN_NUMBER"
           } else {
-            $version = "$ref.0"
+            $parts = $ref -split '-'
+            $baseVersion = $parts[0]
+            $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
+            $version = "$baseVersion.$buildPart"
           }
           # Create a self-signed certificate for MSIX signing
           $cert = New-SelfSignedCertificate -Type Custom `
@@ -206,11 +214,15 @@ jobs:
           Write-Host "Using iscc: $iscc"
           if (-not (Test-Path $iscc)) { throw "iscc.exe not found" }
           # Determine version from git tag or use dev build
+          # Parse version from tag: v5.4.0-1 → numeric=5.4.0.1
           $ref = "$env:GITHUB_REF_NAME" -replace '^v', ''
           if ($ref -eq "main") {
             $appVersion = "0.0.0.$env:GITHUB_RUN_NUMBER"
           } else {
-            $appVersion = "$ref.0"
+            $parts = $ref -split '-'
+            $baseVersion = $parts[0]
+            $buildPart = if ($parts.Count -gt 1) { $parts[1] } else { "0" }
+            $appVersion = "$baseVersion.$buildPart"
           }
           # Run iscc and capture output
           & $iscc scripts/setup.iss /DMyAppVersion="$appVersion" 2>&1
