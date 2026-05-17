@@ -21,13 +21,14 @@ class AirQualityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.uiTokens;
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: tokens.cardBackground,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: tokens.cardBorder),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -182,9 +183,8 @@ class AirQualityCard extends StatelessWidget {
         ),
         Text(
           p.$3,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 10,
           ),
         ),
       ],
@@ -197,13 +197,22 @@ class AirQualityCard extends StatelessWidget {
   Color _getAqiColor(BuildContext context) {
     final aqi = int.tryParse(airQuality.aqi) ?? 0;
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
-    if (aqi <= 50) return Colors.green.shade400; // 优
-    if (aqi <= 100) return Colors.yellow.shade600; // 良
-    if (aqi <= 150) return Colors.orange.shade400; // 轻度污染
+    if (aqi <= 50) {
+      return isDark ? const Color(0xFF86EFAC) : const Color(0xFF15803D);
+    }
+    if (aqi <= 100) {
+      return isDark ? const Color(0xFFFDE68A) : const Color(0xFFB45309);
+    }
+    if (aqi <= 150) {
+      return isDark ? const Color(0xFFFDBA74) : const Color(0xFFC2410C);
+    }
     if (aqi <= 200) return colorScheme.error; // 中度污染
-    if (aqi <= 300) return Colors.purple.shade400; // 重度污染
-    return Colors.brown.shade400; // 严重污染
+    if (aqi <= 300) {
+      return isDark ? const Color(0xFFD8B4FE) : const Color(0xFF7E22CE);
+    }
+    return isDark ? const Color(0xFFD6D3D1) : const Color(0xFF7C2D12);
   }
 
   /// 获取主要污染物

@@ -272,6 +272,8 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
 
     return Material(
       color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: enabled && time.enabled
             ? () => _showTimePickerDialog(context, time, onTimeChanged)
@@ -390,30 +392,30 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         bottomAction: Row(
           children: [
             Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                  child: Text(context.tr('以后再说')),
-                ),
+                child: Text(context.tr('以后再说')),
               ),
+            ),
             const SizedBox(width: 12),
             Expanded(
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(ctx, true),
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                  child: Text(context.tr('去设置')),
-                ),
+                child: Text(context.tr('去设置')),
               ),
+            ),
           ],
         ),
         children: [
@@ -460,30 +462,30 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         bottomAction: Row(
           children: [
             Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                  child: Text(context.tr('已开启')),
-                ),
+                child: Text(context.tr('已开启')),
               ),
+            ),
             const SizedBox(width: 12),
             Expanded(
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(ctx, true),
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                  child: Text(context.tr('去检查')),
-                ),
+                child: Text(context.tr('去检查')),
               ),
+            ),
           ],
         ),
         children: [
@@ -563,33 +565,33 @@ class ScheduledBroadcastScreen extends ConsumerWidget {
         bottomAction: Row(
           children: [
             Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                  child: Text(context.tr('取消')),
-                ),
+                child: Text(context.tr('取消')),
               ),
+            ),
             const SizedBox(width: 12),
             Expanded(
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    openAppSettings();
-                  },
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  openAppSettings();
+                },
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                  child: Text(context.tr('去设置')),
-                ),
+                child: Text(context.tr('去设置')),
               ),
+            ),
           ],
         ),
         children: [

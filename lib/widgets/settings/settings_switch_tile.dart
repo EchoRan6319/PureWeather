@@ -54,6 +54,8 @@ class SettingsSwitchTile extends StatelessWidget {
 
     return Material(
       color: backgroundColor ?? Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: enabled ? () => onChanged!(!value) : null,
         child: Padding(
@@ -64,11 +66,7 @@ class SettingsSwitchTile extends StatelessWidget {
               SizedBox(
                 width: 24,
                 height: 24,
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: iconColor,
-                ),
+                child: Icon(icon, size: 24, color: iconColor),
               ),
               const SizedBox(width: 16),
               // 内容区域
@@ -97,10 +95,7 @@ class SettingsSwitchTile extends StatelessWidget {
                 ),
               ),
               // 开关区域
-              Switch(
-                value: value,
-                onChanged: onChanged,
-              ),
+              Switch(value: value, onChanged: onChanged),
             ],
           ),
         ),

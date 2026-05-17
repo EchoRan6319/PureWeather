@@ -57,6 +57,8 @@ class SettingsListTile extends StatelessWidget {
 
     return Material(
       color: backgroundColor ?? Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: enabled ? onTap : null,
         child: Padding(
@@ -67,11 +69,7 @@ class SettingsListTile extends StatelessWidget {
               SizedBox(
                 width: 24,
                 height: 24,
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: iconColor,
-                ),
+                child: Icon(icon, size: 24, color: iconColor),
               ),
               const SizedBox(width: 16),
               // 内容区域
@@ -105,11 +103,7 @@ class SettingsListTile extends StatelessWidget {
                 trailing!,
               ] else if (onTap != null) ...[
                 const SizedBox(width: 8),
-                Icon(
-                  LucideIcons.chevronRight,
-                  size: 24,
-                  color: iconColor,
-                ),
+                Icon(LucideIcons.chevronRight, size: 24, color: iconColor),
               ],
             ],
           ),

@@ -5,25 +5,42 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app_localizations.dart';
-import '../core/constants/api_config.dart';
+import '../providers/settings_provider.dart';
 
 class DeepSeekService {
   final Dio _dio;
+  final AiProviderType _providerType;
   final String _apiKey;
   final String _baseUrl;
+  final String _model;
 
-  DeepSeekService({Dio? dio, String? apiKey, String? baseUrl})
-    : _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 60),
-              receiveTimeout: const Duration(seconds: 120),
-              headers: const {'Content-Type': 'application/json'},
-            ),
-          ),
-      _apiKey = apiKey ?? ApiConfig.deepseekApiKey,
-      _baseUrl = baseUrl ?? ApiConfig.deepseekBaseUrl;
+  DeepSeekService({
+    Dio? dio,
+    AiProviderType providerType = AiProviderType.openAiCompatible,
+    String apiKey = '',
+    String baseUrl = 'https://api.openai.com/v1',
+    String model = '',
+  }) : _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 60),
+               receiveTimeout: const Duration(seconds: 120),
+               headers: const {'Content-Type': 'application/json'},
+             ),
+           ),
+       _providerType = providerType,
+       _apiKey = apiKey,
+       _baseUrl = baseUrl,
+       _model = model;
+
+  bool get isConfigured =>
+      _apiKey.trim().isNotEmpty &&
+      _baseUrl.trim().isNotEmpty &&
+      _model.trim().isNotEmpty;
+
+  String get _normalizedBaseUrl =>
+      _baseUrl.trim().replaceAll(RegExp(r'/+$'), '');
 
   String _buildSystemPrompt(String? weatherContext) {
     final isEnglish = AppLocalizations.isEnglishCurrentLocale;
@@ -107,6 +124,11 @@ $dataSection''';
     required List<ChatMessage> history,
     String? weatherContext,
   }) async* {
+    if (!isConfigured) {
+      yield AppLocalizations.tr('请先在设置 > AI 设置中填写 API Key、接口地址和模型名称。');
+      return;
+    }
+
     final messages = <Map<String, String>>[
       {'role': 'system', 'content': _buildSystemPrompt(weatherContext)},
       ...history.map((m) => {'role': m.role, 'content': m.content}),
@@ -114,76 +136,146 @@ $dataSection''';
     ];
 
     try {
-      final response = await _dio.post<ResponseBody>(
-        '$_baseUrl/chat/completions',
-        data: {
-          'model': 'deepseek-v4-flash',
-          'messages': messages,
-          'stream': true,
-          'temperature': 0.7,
-          'max_tokens': 2048,
-        },
-        options: Options(
-          headers: {'Authorization': 'Bearer $_apiKey'},
-          responseType: ResponseType.stream,
+      final stream = switch (_providerType) {
+        AiProviderType.anthropic => _anthropicChatStream(messages),
+        AiProviderType.openAiCompatible => _openAiCompatibleChatStream(
+          messages,
         ),
-      );
-
-      final stream = response.data?.stream;
-      if (stream == null) {
-        yield AppLocalizations.tr('抱歉，无法连接到AI服务。');
-        return;
-      }
-
-      final lineBuffer = StringBuffer();
+      };
 
       await for (final chunk in stream) {
-        final text = utf8.decode(chunk);
-        lineBuffer.write(text);
-
-        final buffered = lineBuffer.toString();
-        final lines = buffered.split('\n');
-
-        // 最后一段可能不完整（TCP 分包），保留在 buffer 中
-        lineBuffer.clear();
-        lineBuffer.write(lines.last);
-
-        // 除最后一段外，都是完整行
-        for (var i = 0; i < lines.length - 1; i++) {
-          final line = lines[i].trim();
-          if (!line.startsWith('data: ')) continue;
-
-          final data = line.substring(6);
-          if (data == '[DONE]') continue;
-
-          try {
-            final parsed = jsonDecode(data);
-            final content = parsed['choices']?[0]?['delta']?['content'];
-            if (content != null) {
-              yield _sanitizeAiResponse(content, trim: false);
-            }
-          } catch (_) {
-            continue;
-          }
-        }
-      }
-
-      // 处理 buffer 中剩余的最后一行
-      final remaining = lineBuffer.toString().trim();
-      if (remaining.startsWith('data: ') && remaining != 'data: [DONE]') {
-        try {
-          final parsed = jsonDecode(remaining.substring(6));
-          final content = parsed['choices']?[0]?['delta']?['content'];
-          if (content != null) {
-            yield _sanitizeAiResponse(content, trim: false);
-          }
-        } catch (_) {}
+        yield chunk;
       }
     } catch (e) {
       yield AppLocalizations.tr(
         '抱歉，发生了错误：{error}',
         args: {'error': e.toString()},
       );
+    }
+  }
+
+  Stream<String> _openAiCompatibleChatStream(
+    List<Map<String, String>> messages,
+  ) async* {
+    final response = await _dio.post<ResponseBody>(
+      '$_normalizedBaseUrl/chat/completions',
+      data: {
+        'model': _model.trim(),
+        'messages': messages,
+        'stream': true,
+        'temperature': 0.7,
+        'max_tokens': 2048,
+      },
+      options: Options(
+        headers: {'Authorization': 'Bearer ${_apiKey.trim()}'},
+        responseType: ResponseType.stream,
+      ),
+    );
+
+    yield* _parseSseStream(response.data, (parsed) {
+      final content = parsed['choices']?[0]?['delta']?['content'];
+      return content is String ? content : null;
+    });
+  }
+
+  Stream<String> _anthropicChatStream(
+    List<Map<String, String>> messages,
+  ) async* {
+    final systemPrompt = messages
+        .where((m) => m['role'] == 'system')
+        .map((m) => m['content'] ?? '')
+        .where((content) => content.isNotEmpty)
+        .join('\n\n');
+    final chatMessages = messages
+        .where((m) => m['role'] == 'user' || m['role'] == 'assistant')
+        .map((m) => {'role': m['role'], 'content': m['content']})
+        .toList();
+
+    final response = await _dio.post<ResponseBody>(
+      '$_normalizedBaseUrl/messages',
+      data: {
+        'model': _model.trim(),
+        'system': systemPrompt,
+        'messages': chatMessages,
+        'stream': true,
+        'temperature': 0.7,
+        'max_tokens': 2048,
+      },
+      options: Options(
+        headers: {
+          'x-api-key': _apiKey.trim(),
+          'anthropic-version': '2023-06-01',
+        },
+        responseType: ResponseType.stream,
+      ),
+    );
+
+    yield* _parseSseStream(response.data, (parsed) {
+      if (parsed['type'] == 'content_block_delta') {
+        final text = parsed['delta']?['text'];
+        return text is String ? text : null;
+      }
+      if (parsed['type'] == 'error') {
+        final message = parsed['error']?['message'];
+        return message is String ? message : null;
+      }
+      return null;
+    });
+  }
+
+  Stream<String> _parseSseStream(
+    ResponseBody? responseBody,
+    String? Function(dynamic parsed) extractContent,
+  ) async* {
+    final stream = responseBody?.stream;
+    if (stream == null) {
+      yield AppLocalizations.tr('抱歉，无法连接到AI服务。');
+      return;
+    }
+
+    final lineBuffer = StringBuffer();
+
+    await for (final chunk in stream) {
+      final text = utf8.decode(chunk);
+      lineBuffer.write(text);
+
+      final buffered = lineBuffer.toString();
+      final lines = buffered.split('\n');
+
+      // 最后一段可能不完整（TCP 分包），保留在 buffer 中
+      lineBuffer.clear();
+      lineBuffer.write(lines.last);
+
+      // 除最后一段外，都是完整行
+      for (var i = 0; i < lines.length - 1; i++) {
+        final content = _parseSseDataLine(lines[i], extractContent);
+        if (content != null) {
+          yield _sanitizeAiResponse(content, trim: false);
+        }
+      }
+    }
+
+    final remaining = lineBuffer.toString();
+    final content = _parseSseDataLine(remaining, extractContent);
+    if (content != null) {
+      yield _sanitizeAiResponse(content, trim: false);
+    }
+  }
+
+  String? _parseSseDataLine(
+    String rawLine,
+    String? Function(dynamic parsed) extractContent,
+  ) {
+    final line = rawLine.trim();
+    if (!line.startsWith('data: ')) return null;
+
+    final data = line.substring(6);
+    if (data == '[DONE]') return null;
+
+    try {
+      return extractContent(jsonDecode(data));
+    } catch (_) {
+      return null;
     }
   }
 
@@ -224,7 +316,13 @@ class ChatMessage {
 }
 
 final deepSeekServiceProvider = Provider<DeepSeekService>((ref) {
-  return DeepSeekService();
+  final settings = ref.watch(settingsProvider);
+  return DeepSeekService(
+    providerType: settings.aiProviderType,
+    apiKey: settings.aiApiKey,
+    baseUrl: settings.aiBaseUrl,
+    model: settings.aiModel,
+  );
 });
 
 class ChatSession {

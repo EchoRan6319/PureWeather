@@ -56,16 +56,24 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final hasLocationPermission = await ref
         .read(locationInitProvider.notifier)
         .requestLocationPermission();
+    if (!mounted) return;
 
     if (!hasLocationPermission) {
-      _showPermissionDialog(context.tr('定位权限'), context.tr('极光天气需要定位权限来获取您当前位置的天气信息。请在设置中授予定位权限。'));
+      _showPermissionDialog(
+        context.tr('定位权限'),
+        context.tr('极光天气需要定位权限来获取您当前位置的天气信息。请在设置中授予定位权限。'),
+      );
     }
 
     final hasNotificationPermission = await notificationServiceProvider
         .requestNotificationPermission();
+    if (!mounted) return;
 
     if (!hasNotificationPermission) {
-      _showPermissionDialog(context.tr('通知权限'), context.tr('极光天气需要通知权限来推送天气预警信息。请在设置中授予通知权限。'));
+      _showPermissionDialog(
+        context.tr('通知权限'),
+        context.tr('极光天气需要通知权限来推送天气预警信息。请在设置中授予通知权限。'),
+      );
     }
 
     await notificationServiceProvider.markNotificationPermissionRequested();
@@ -249,7 +257,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         children: [
           Container(
             height: 0.5,
-            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.3),
           ),
           NavigationBar(
             selectedIndex: _currentIndex,
@@ -268,21 +278,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return AuroraBackground(weatherCode: weatherCode, child: scaffold);
     }
 
-    // Brand aurora gradient matching AppIcon colors while weather loads.
-    // Looks intentional, not like a broken screen.
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0F0C29),
-            Color(0xFF302B63),
-            Color(0xFF0D3B66),
-            Color(0xFF1A5C5C),
-          ],
-        ),
-      ),
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
       child: scaffold,
     );
   }

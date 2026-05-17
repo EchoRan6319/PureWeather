@@ -18,7 +18,10 @@ class ApiConfig {
   }
 
   static String get qweatherApiKey {
-    const fromDefine = String.fromEnvironment('QWEATHER_API_KEY', defaultValue: '');
+    const fromDefine = String.fromEnvironment(
+      'QWEATHER_API_KEY',
+      defaultValue: '',
+    );
     if (fromDefine.isNotEmpty) return fromDefine;
     return _fromEnv('QWEATHER_API_KEY').isNotEmpty
         ? _fromEnv('QWEATHER_API_KEY')
@@ -26,7 +29,10 @@ class ApiConfig {
   }
 
   static String get qweatherBaseUrl {
-    const fromDefine = String.fromEnvironment('QWEATHER_BASE_URL', defaultValue: '');
+    const fromDefine = String.fromEnvironment(
+      'QWEATHER_BASE_URL',
+      defaultValue: '',
+    );
     if (fromDefine.isNotEmpty) return fromDefine;
     return _fromEnv('QWEATHER_BASE_URL').isNotEmpty
         ? _fromEnv('QWEATHER_BASE_URL')
@@ -34,7 +40,10 @@ class ApiConfig {
   }
 
   static String get caiyunApiKey {
-    const fromDefine = String.fromEnvironment('CAIYUN_API_KEY', defaultValue: '');
+    const fromDefine = String.fromEnvironment(
+      'CAIYUN_API_KEY',
+      defaultValue: '',
+    );
     if (fromDefine.isNotEmpty) return fromDefine;
     return _fromEnv('CAIYUN_API_KEY').isNotEmpty
         ? _fromEnv('CAIYUN_API_KEY')
@@ -42,7 +51,10 @@ class ApiConfig {
   }
 
   static String get caiyunBaseUrl {
-    const fromDefine = String.fromEnvironment('CAIYUN_BASE_URL', defaultValue: '');
+    const fromDefine = String.fromEnvironment(
+      'CAIYUN_BASE_URL',
+      defaultValue: '',
+    );
     if (fromDefine.isNotEmpty) return fromDefine;
     return _fromEnv('CAIYUN_BASE_URL').isNotEmpty
         ? _fromEnv('CAIYUN_BASE_URL')
@@ -63,22 +75,6 @@ class ApiConfig {
     return _fromEnv('AMAP_WEB_KEY').isNotEmpty
         ? _fromEnv('AMAP_WEB_KEY')
         : dotenv.env['AMAP_WEB_KEY'] ?? '';
-  }
-
-  static String get deepseekApiKey {
-    const fromDefine = String.fromEnvironment('DEEPSEEK_API_KEY', defaultValue: '');
-    if (fromDefine.isNotEmpty) return fromDefine;
-    return _fromEnv('DEEPSEEK_API_KEY').isNotEmpty
-        ? _fromEnv('DEEPSEEK_API_KEY')
-        : dotenv.env['DEEPSEEK_API_KEY'] ?? '';
-  }
-
-  static String get deepseekBaseUrl {
-    const fromDefine = String.fromEnvironment('DEEPSEEK_BASE_URL', defaultValue: '');
-    if (fromDefine.isNotEmpty) return fromDefine;
-    return _fromEnv('DEEPSEEK_BASE_URL').isNotEmpty
-        ? _fromEnv('DEEPSEEK_BASE_URL')
-        : dotenv.env['DEEPSEEK_BASE_URL'] ?? 'https://api.deepseek.com/v1';
   }
 
   static bool get isConfigured {

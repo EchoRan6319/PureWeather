@@ -77,59 +77,59 @@ class SettingsBottomSheet extends StatelessWidget {
                   : mediaQuery.size.height,
             ),
             child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 拖动指示器
+                  _buildHandle(context),
+                  // 标题
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                    child: Text(
+                      context.tr(title),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  // 内容区域 - 使用 Flexible 包裹 ListView 以适应不同高度
+                  Flexible(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: contentMaxHeight > 0
+                            ? contentMaxHeight
+                            : mediaQuery.size.height,
+                      ),
+                      child: ListView(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: children,
+                      ),
+                    ),
+                  ),
+                  // 底部操作按钮
+                  if (bottomAction != null)
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        24,
+                        24,
+                        24,
+                        24 + bottomInset,
+                      ),
+                      child: bottomAction,
+                    )
+                  else
+                    SizedBox(height: bottomInset),
+                ],
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 拖动指示器
-                _buildHandle(context),
-                // 标题
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                  child: Text(
-                    context.tr(title),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-                // 内容区域 - 使用 Flexible 包裹 ListView 以适应不同高度
-                Flexible(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: contentMaxHeight > 0
-                          ? contentMaxHeight
-                          : mediaQuery.size.height,
-                    ),
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: children,
-                    ),
-                  ),
-                ),
-                // 底部操作按钮
-                if (bottomAction != null)
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      24,
-                      24,
-                      24,
-                      24 + bottomInset,
-                    ),
-                    child: bottomAction,
-                  )
-                else
-                  SizedBox(height: bottomInset),
-              ],
-            ),
-          ),
           ),
         ),
       ),
@@ -217,6 +217,7 @@ class SettingsSelectionItem extends StatelessWidget {
             width: 1,
           ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(20),
@@ -277,7 +278,10 @@ class SettingsSelectionItem extends StatelessWidget {
                 ),
                 // 右侧选中标记
                 if (isSelected)
-                  Icon(LucideIcons.checkCircle, color: tokens.selectedForeground),
+                  Icon(
+                    LucideIcons.checkCircle,
+                    color: tokens.selectedForeground,
+                  ),
               ],
             ),
           ),

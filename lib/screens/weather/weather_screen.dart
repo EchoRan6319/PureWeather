@@ -310,9 +310,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       height: viewportHeight,
       child: Stack(
         children: [
-          Positioned.fill(
-            child: Container(color: Colors.transparent),
-          ),
+          Positioned.fill(child: Container(color: Colors.transparent)),
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             right: 12,
@@ -367,9 +365,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       height: viewportHeight,
       child: Stack(
         children: [
-          Positioned.fill(
-            child: Container(color: Colors.transparent),
-          ),
+          Positioned.fill(child: Container(color: Colors.transparent)),
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             right: 12,
@@ -690,7 +686,6 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       ],
     );
   }
-
 }
 
 /// 城市选择器底部弹窗
@@ -833,67 +828,86 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
           maxChildSize: sheetMax,
           expand: false,
           builder: (context, scrollController) {
-            return Column(
-              children: [
-                // 拖拽指示器
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: context.uiTokens.divider,
-                    borderRadius: BorderRadius.circular(2),
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // 拖拽指示器
+                  Container(
+                    width: 32,
+                    height: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                // 搜索栏和定位按钮
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: context.tr('搜索城市'),
-                          prefixIcon: const Icon(LucideIcons.search),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(LucideIcons.x),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _searchResults = [];
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                        onChanged: (value) {
-                          setState(() {});
-                          _searchCities(value);
-                        },
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: Text(
+                      context.tr('城市管理'),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          icon: const Icon(LucideIcons.crosshair),
-                          label: Text(context.tr('定位当前位置')),
-                          onPressed: _getCurrentLocation,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                // 搜索结果或城市列表
-                Expanded(
-                  child: _isSearching
-                      ? const Center(child: CircularProgressIndicator())
-                      : _searchResults.isNotEmpty
-                      ? _buildSearchResults()
-                      : _buildCityList(cities, defaultCity, scrollController),
-                ),
-              ],
+                  // 搜索栏和定位按钮
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: context.tr('搜索城市'),
+                            prefixIcon: const Icon(LucideIcons.search),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(LucideIcons.x),
+                                    tooltip: context.tr('清空搜索'),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchResults = [];
+                                      });
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (value) {
+                            setState(() {});
+                            _searchCities(value);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            icon: const Icon(LucideIcons.crosshair),
+                            label: Text(context.tr('定位当前位置')),
+                            onPressed: _getCurrentLocation,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 搜索结果或城市列表
+                  Expanded(
+                    child: _isSearching
+                        ? const Center(child: CircularProgressIndicator())
+                        : _searchResults.isNotEmpty
+                        ? _buildSearchResults()
+                        : _buildCityList(cities, defaultCity, scrollController),
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -909,6 +923,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
       itemBuilder: (context, index) {
         final location = _searchResults[index];
         return Container(
+          clipBehavior: Clip.antiAlias,
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: context.uiTokens.cardBackground,
@@ -992,6 +1007,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
         final weatherAsync = ref.watch(weatherForCityProvider(city));
 
         return Container(
+          clipBehavior: Clip.antiAlias,
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: isDefault
@@ -1008,9 +1024,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
             leading: Icon(
               isDefault
                   ? LucideIcons.checkCircle
-                  : (isLocated
-                        ? LucideIcons.crosshair
-                        : LucideIcons.mapPin),
+                  : (isLocated ? LucideIcons.crosshair : LucideIcons.mapPin),
               color: isDefault
                   ? context.uiTokens.selectedBorder
                   : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1132,6 +1146,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                 // 删除按钮
                 IconButton(
                   icon: const Icon(LucideIcons.trash2, size: 20),
+                  tooltip: context.tr('删除城市'),
                   onPressed: () async {
                     final confirmed = await _confirmRemoveCity(city);
                     if (!confirmed) {

@@ -114,7 +114,9 @@ class SettingsScreen extends ConsumerWidget {
                                   value: appSettings
                                       .androidLiveUpdateNotificationEnabled,
                                   onChanged: (value) async {
-                                    final msgPermissionDenied = context.tr('未授予通知权限');
+                                    final msgPermissionDenied = context.tr(
+                                      '未授予通知权限',
+                                    );
                                     final msgUnsupported = context.tr(
                                       '当前系统不支持实时更新通知（需 Android 16+）',
                                     );
@@ -235,17 +237,6 @@ class SettingsScreen extends ConsumerWidget {
                             icon: LucideIcons.eye,
                             animationDelay: 100,
                             children: [
-                              SettingsSwitchTile(
-                                icon: LucideIcons.brain,
-                                title: '显示天气助手',
-                                subtitle: '在底部导航栏显示天气助手页面',
-                                value: appSettings.showAIAssistant,
-                                onChanged: (value) {
-                                  ref
-                                      .read(settingsProvider.notifier)
-                                      .setShowAIAssistant(value);
-                                },
-                              ),
                               SettingsListTile(
                                 icon: LucideIcons.globe,
                                 title: '语言',
@@ -293,11 +284,36 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
+                          // AI 设置组
+                          SettingsSection(
+                            title: 'AI 设置',
+                            icon: LucideIcons.brain,
+                            animationDelay: 150,
+                            children: [
+                              SettingsSwitchTile(
+                                icon: LucideIcons.bot,
+                                title: '启用天气助手',
+                                subtitle: '默认关闭，开启后在底部导航栏显示天气助手',
+                                value: appSettings.showAIAssistant,
+                                onChanged: (value) {
+                                  ref
+                                      .read(settingsProvider.notifier)
+                                      .setShowAIAssistant(value);
+                                },
+                              ),
+                              SettingsListTile(
+                                icon: LucideIcons.keyRound,
+                                title: '模型与接口',
+                                subtitle: _getAiSettingsSummary(appSettings),
+                                onTap: () => _showAiSettingsSheet(context),
+                              ),
+                            ],
+                          ),
                           // 数据设置组
                           SettingsSection(
                             title: '数据',
                             icon: LucideIcons.refreshCw,
-                            animationDelay: 150,
+                            animationDelay: 200,
                             children: [
                               SettingsSwitchTile(
                                 icon: LucideIcons.rotateCw,
@@ -336,7 +352,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '高级',
                             icon: LucideIcons.slidersHorizontal,
-                            animationDelay: 200,
+                            animationDelay: 250,
                             children: [
                               SettingsSwitchTile(
                                 icon: LucideIcons.hand,
@@ -355,7 +371,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '关于',
                             icon: LucideIcons.info,
-                            animationDelay: 250,
+                            animationDelay: 300,
                             children: [
                               SettingsListTile(
                                 icon: LucideIcons.layoutGrid,
@@ -424,6 +440,34 @@ class SettingsScreen extends ConsumerWidget {
       case AppLanguage.enUS:
         return 'English (US)';
     }
+  }
+
+  String _getAiProviderName(AiProviderType providerType) {
+    switch (providerType) {
+      case AiProviderType.anthropic:
+        return 'Anthropic';
+      case AiProviderType.openAiCompatible:
+        return 'OpenAI 兼容';
+    }
+  }
+
+  String _getAiSettingsSummary(AppSettings settings) {
+    final hasApiKey = settings.aiApiKey.trim().isNotEmpty;
+    final hasModel = settings.aiModel.trim().isNotEmpty;
+    if (!hasApiKey || !hasModel) {
+      return '未配置 API Key 或模型';
+    }
+    return '${_getAiProviderName(settings.aiProviderType)} · ${settings.aiModel}';
+  }
+
+  void _showAiSettingsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _AiSettingsBottomSheet(),
+    );
   }
 
   void _showAppLanguageDialog(
@@ -985,7 +1029,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           (
             '4. 第三方服务',
-            '本应用使用以下第三方服务：\n• 和风天气（QWeather）及彩云天气：提供天气数据，您的位置坐标（经纬度）将发送至其服务器以换取天气数据。\n• 高德地图：提供城市搜索和定位服务，您的位置坐标（经纬度）将发送至其服务器以获取位置信息。\n• DeepSeek：提供天气助手的AI问答功能，您的天气查询问题将发送至其服务器以获取智能回答。',
+            '本应用使用以下第三方服务：\n• 和风天气（QWeather）及彩云天气：提供天气数据，您的位置坐标（经纬度）将发送至其服务器以换取天气数据。\n• 高德地图：提供城市搜索和定位服务，您的位置坐标（经纬度）将发送至其服务器以获取位置信息。\n• 用户配置的 AI 服务：仅在您开启并配置天气助手后，您的天气查询问题会发送至对应服务以获取智能回答。',
           ),
         ],
       ),
@@ -1009,11 +1053,11 @@ class SettingsScreen extends ConsumerWidget {
           ),
           (
             '3. 免责声明',
-            '• 天气数据由第三方提供，受气象、地理、网络等多种因素影响，数据的准时性、准确性可能存在偏差。本应用不承担因天气数据错误导致的任何直接或间接损失。\n• 定位服务由高德地图提供，其准确性和可用性受设备硬件和网络环境影响。\n• 天气助手功能由DeepSeek提供，其回答基于AI模型，可能存在一定的局限性和误差，仅供参考。',
+            '• 天气数据由第三方提供，受气象、地理、网络等多种因素影响，数据的准时性、准确性可能存在偏差。本应用不承担因天气数据错误导致的任何直接或间接损失。\n• 定位服务由高德地图提供，其准确性和可用性受设备硬件和网络环境影响。\n• 天气助手回答由您配置的 AI 服务生成，可能存在一定的局限性和误差，仅供参考。',
           ),
           (
             '4. 第三方服务',
-            '本应用使用和风天气、彩云天气、高德地图和DeepSeek等第三方服务，您在使用本应用时即表示同意这些第三方服务的相关条款。',
+            '本应用使用和风天气、彩云天气、高德地图以及您自行配置的 AI 服务。您在使用相关功能时即表示同意这些第三方服务的相关条款。',
           ),
           ('5. 协议变更', '我们保留随时修改本协议的权利，修改后的协议将在应用内公布。'),
         ],
@@ -1082,6 +1126,210 @@ class _ContentBottomSheet extends StatelessWidget {
         }
         return const SizedBox.shrink();
       }).toList(),
+    );
+  }
+}
+
+class _AiSettingsBottomSheet extends ConsumerStatefulWidget {
+  const _AiSettingsBottomSheet();
+
+  @override
+  ConsumerState<_AiSettingsBottomSheet> createState() =>
+      _AiSettingsBottomSheetState();
+}
+
+class _AiSettingsBottomSheetState
+    extends ConsumerState<_AiSettingsBottomSheet> {
+  late AiProviderType _providerType;
+  late final TextEditingController _apiKeyController;
+  late final TextEditingController _baseUrlController;
+  late final TextEditingController _modelController;
+  bool _obscureApiKey = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = ref.read(settingsProvider);
+    _providerType = settings.aiProviderType;
+    _apiKeyController = TextEditingController(text: settings.aiApiKey);
+    _baseUrlController = TextEditingController(text: settings.aiBaseUrl);
+    _modelController = TextEditingController(text: settings.aiModel);
+  }
+
+  @override
+  void dispose() {
+    _apiKeyController.dispose();
+    _baseUrlController.dispose();
+    _modelController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsBottomSheet(
+      title: 'AI 设置',
+      bottomAction: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(context.tr('取消')),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton(
+              onPressed: _save,
+              child: Text(context.tr('保存')),
+            ),
+          ),
+        ],
+      ),
+      children: [
+        _BottomSheetTokenCard(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                LucideIcons.info,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  context.tr('天气助手默认关闭。API Key 仅保存在本机，用于请求你配置的 AI 服务。'),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SettingsSelectionItem(
+          title: 'OpenAI 兼容',
+          subtitle: '适用于 OpenAI、DeepSeek、通义千问等兼容 Chat Completions 的接口',
+          icon: LucideIcons.workflow,
+          isSelected: _providerType == AiProviderType.openAiCompatible,
+          onTap: () => _setProviderType(AiProviderType.openAiCompatible),
+        ),
+        SettingsSelectionItem(
+          title: 'Anthropic',
+          subtitle: '适用于 Claude Messages API',
+          icon: LucideIcons.sparkles,
+          isSelected: _providerType == AiProviderType.anthropic,
+          onTap: () => _setProviderType(AiProviderType.anthropic),
+        ),
+        _BottomSheetTokenCard(
+          child: Column(
+            children: [
+              _buildTextField(
+                controller: _apiKeyController,
+                label: 'API Key',
+                hintText: _providerType == AiProviderType.anthropic
+                    ? 'sk-ant-...'
+                    : 'sk-...',
+                icon: LucideIcons.keyRound,
+                obscureText: _obscureApiKey,
+                trailing: IconButton(
+                  icon: Icon(
+                    _obscureApiKey ? LucideIcons.eye : LucideIcons.eyeOff,
+                  ),
+                  tooltip: context.tr(
+                    _obscureApiKey ? '显示 API Key' : '隐藏 API Key',
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureApiKey = !_obscureApiKey;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildTextField(
+                controller: _baseUrlController,
+                label: '接口地址',
+                hintText: _providerType == AiProviderType.anthropic
+                    ? 'https://api.anthropic.com/v1'
+                    : 'https://api.openai.com/v1',
+                icon: LucideIcons.link,
+                keyboardType: TextInputType.url,
+              ),
+              const SizedBox(height: 12),
+              _buildTextField(
+                controller: _modelController,
+                label: '模型名称',
+                hintText: _providerType == AiProviderType.anthropic
+                    ? 'claude-3-5-haiku-latest'
+                    : 'gpt-4o-mini / deepseek-chat / qwen-plus',
+                icon: LucideIcons.cpu,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _setProviderType(AiProviderType value) {
+    setState(() {
+      _providerType = value;
+      final currentBaseUrl = _baseUrlController.text.trim();
+      if (currentBaseUrl.isEmpty ||
+          currentBaseUrl == 'https://api.openai.com/v1' ||
+          currentBaseUrl == 'https://api.anthropic.com/v1') {
+        _baseUrlController.text = value == AiProviderType.anthropic
+            ? 'https://api.anthropic.com/v1'
+            : 'https://api.openai.com/v1';
+      }
+    });
+  }
+
+  Future<void> _save() async {
+    final notifier = ref.read(settingsProvider.notifier);
+    await notifier.setAiProviderType(_providerType);
+    await notifier.setAiApiKey(_apiKeyController.text);
+    await notifier.setAiBaseUrl(_baseUrlController.text);
+    await notifier.setAiModel(_modelController.text);
+
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hintText,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    Widget? trailing,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+        labelText: context.tr(label),
+        hintText: hintText,
+        prefixIcon: Icon(icon),
+        suffixIcon: trailing,
+        filled: true,
+        fillColor: colorScheme.surface,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: context.uiTokens.cardBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: context.uiTokens.selectedBorder),
+        ),
+      ),
     );
   }
 }
@@ -1187,12 +1435,7 @@ class _AboutBottomSheet extends StatelessWidget {
               const SizedBox(height: 16),
               _buildAboutItem(context, LucideIcons.cloud, '和风天气', '提供天气数据'),
               const SizedBox(height: 16),
-              _buildAboutItem(
-                context,
-                LucideIcons.cloud,
-                '彩云天气',
-                '提供分钟级降雨预报',
-              ),
+              _buildAboutItem(context, LucideIcons.cloud, '彩云天气', '提供分钟级降雨预报'),
               const SizedBox(height: 16),
               _buildAboutItem(
                 context,
@@ -1204,8 +1447,8 @@ class _AboutBottomSheet extends StatelessWidget {
               _buildAboutItem(
                 context,
                 LucideIcons.lightbulb,
-                'DeepSeek',
-                '提供天气助手的 AI 问答功能',
+                'AI 服务',
+                '天气助手使用您自行配置的模型与接口',
               ),
             ],
           ),
@@ -1240,16 +1483,26 @@ class _AboutBottomSheet extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               if (isLink)
-                InkWell(
-                  onTap: () => launchUrl(
-                    Uri.parse(content),
-                    mode: LaunchMode.externalApplication,
+                Material(
+                  color: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
-                    content,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      decoration: TextDecoration.underline,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => launchUrl(
+                      Uri.parse(content),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        content,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.primary,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
                     ),
                   ),
                 )

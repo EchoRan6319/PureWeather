@@ -29,6 +29,7 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
     final spacing = isLargeScreen ? 12.0 : 8.0;
 
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: tokens.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -78,7 +79,9 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
                   ),
                   SizedBox(width: spacing),
                   Icon(
-                    _isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                    _isExpanded
+                        ? LucideIcons.chevronUp
+                        : LucideIcons.chevronDown,
                     size: 20,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -108,7 +111,12 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
                   (alert) => _AlertItem(alert: alert)
                       .animate()
                       .fadeIn(duration: 300.ms, delay: 100.ms)
-                      .slideY(begin: 0.1, end: 0, duration: 300.ms, delay: 100.ms),
+                      .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 300.ms,
+                        delay: 100.ms,
+                      ),
                 ),
               ],
             ],
@@ -131,10 +139,7 @@ class _AlertItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            alert.text,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(alert.text, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 4),
           Text(
             context.tr(
@@ -158,7 +163,11 @@ class _AlertItem extends StatelessWidget {
       final now = DateTime.now();
 
       final today = DateTime(now.year, now.month, now.day);
-      final alertDate = DateTime(localTime.year, localTime.month, localTime.day);
+      final alertDate = DateTime(
+        localTime.year,
+        localTime.month,
+        localTime.day,
+      );
       final difference = today.difference(alertDate).inDays;
 
       final timeFormat = DateFormat('HH:mm');

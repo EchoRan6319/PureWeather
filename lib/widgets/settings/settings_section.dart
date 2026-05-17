@@ -54,53 +54,53 @@ class SettingsSection extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 分组标题
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: colorScheme.primary,
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 分组标题
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 18, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.tr(title),
+                      style: textTheme.titleSmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  context.tr(title),
-                  style: textTheme.titleSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
+              ),
+              // 内容区域
+              Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: tokens.cardBackground,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: tokens.cardBorder),
                 ),
-              ],
-            ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: childrenWithDividers,
+                ),
+              ),
+            ],
           ),
-          // 内容区域
-          Container(
-            decoration: BoxDecoration(
-              color: tokens.cardBackground,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: tokens.cardBorder),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: childrenWithDividers,
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(
-      delay: Duration(milliseconds: animationDelay),
-      duration: 300.ms,
-    ).slideY(
-      delay: Duration(milliseconds: animationDelay),
-      begin: 0.02,
-      duration: 300.ms,
-    );
+        )
+        .animate()
+        .fadeIn(
+          delay: Duration(milliseconds: animationDelay),
+          duration: 300.ms,
+        )
+        .slideY(
+          delay: Duration(milliseconds: animationDelay),
+          begin: 0.02,
+          duration: 300.ms,
+        );
   }
 }

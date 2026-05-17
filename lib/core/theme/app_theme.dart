@@ -28,15 +28,23 @@ class AppUiTokens extends ThemeExtension<AppUiTokens> {
     final isDark = colorScheme.brightness == Brightness.dark;
     return AppUiTokens(
       // Translucent glass cards let the Aurora gradient show through
-      cardBackground: colorScheme.surfaceContainerHigh
-          .withValues(alpha: isDark ? 0.55 : 0.65),
-      cardBorder: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.35 : 0.45),
-      selectedBackground: colorScheme.secondaryContainer
-          .withValues(alpha: isDark ? 0.65 : 0.75),
-      selectedBorder: colorScheme.secondary.withValues(alpha: isDark ? 0.7 : 0.8),
+      cardBackground: colorScheme.surfaceContainerHigh.withValues(
+        alpha: isDark ? 0.84 : 0.88,
+      ),
+      cardBorder: colorScheme.outlineVariant.withValues(
+        alpha: isDark ? 0.48 : 0.56,
+      ),
+      selectedBackground: colorScheme.secondaryContainer.withValues(
+        alpha: isDark ? 0.82 : 0.88,
+      ),
+      selectedBorder: colorScheme.secondary.withValues(
+        alpha: isDark ? 0.76 : 0.84,
+      ),
       selectedForeground: colorScheme.onSecondaryContainer,
-      dangerBackground: colorScheme.errorContainer.withValues(alpha: isDark ? 0.45 : 0.35),
-      dangerBorder: colorScheme.error.withValues(alpha: isDark ? 0.75 : 0.6),
+      dangerBackground: colorScheme.errorContainer.withValues(
+        alpha: isDark ? 0.72 : 0.82,
+      ),
+      dangerBorder: colorScheme.error.withValues(alpha: isDark ? 0.78 : 0.66),
       divider: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.5 : 0.6),
       pressedOverlay: colorScheme.primary.withValues(alpha: 0.08),
     );
@@ -75,10 +83,22 @@ class AppUiTokens extends ThemeExtension<AppUiTokens> {
     return AppUiTokens(
       cardBackground: Color.lerp(cardBackground, other.cardBackground, t)!,
       cardBorder: Color.lerp(cardBorder, other.cardBorder, t)!,
-      selectedBackground: Color.lerp(selectedBackground, other.selectedBackground, t)!,
+      selectedBackground: Color.lerp(
+        selectedBackground,
+        other.selectedBackground,
+        t,
+      )!,
       selectedBorder: Color.lerp(selectedBorder, other.selectedBorder, t)!,
-      selectedForeground: Color.lerp(selectedForeground, other.selectedForeground, t)!,
-      dangerBackground: Color.lerp(dangerBackground, other.dangerBackground, t)!,
+      selectedForeground: Color.lerp(
+        selectedForeground,
+        other.selectedForeground,
+        t,
+      )!,
+      dangerBackground: Color.lerp(
+        dangerBackground,
+        other.dangerBackground,
+        t,
+      )!,
       dangerBorder: Color.lerp(dangerBorder, other.dangerBorder, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
       pressedOverlay: Color.lerp(pressedOverlay, other.pressedOverlay, t)!,
@@ -102,10 +122,12 @@ class AppTheme {
     String? fontFamily,
   }) {
     final isDark = colorScheme.brightness == Brightness.dark;
-    final glassBg = colorScheme.surfaceContainerHigh
-        .withValues(alpha: isDark ? 0.55 : 0.65);
-    final glassBorder = colorScheme.outlineVariant
-        .withValues(alpha: isDark ? 0.30 : 0.40);
+    final glassBg = colorScheme.surfaceContainerHigh.withValues(
+      alpha: isDark ? 0.84 : 0.88,
+    );
+    final glassBorder = colorScheme.outlineVariant.withValues(
+      alpha: isDark ? 0.48 : 0.56,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -141,8 +163,9 @@ class AppTheme {
 
       // FAB — glass
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: colorScheme.primaryContainer
-            .withValues(alpha: isDark ? 0.7 : 0.8),
+        backgroundColor: colorScheme.primaryContainer.withValues(
+          alpha: isDark ? 0.7 : 0.8,
+        ),
         foregroundColor: colorScheme.onPrimaryContainer,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -150,8 +173,9 @@ class AppTheme {
 
       // NavigationBar — Aurora glass, no Material 3 pill indicator
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surface
-            .withValues(alpha: isDark ? 0.50 : 0.65),
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: isDark ? 0.50 : 0.65,
+        ),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         height: 64,
@@ -175,10 +199,7 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(
-              color: colorScheme.primary,
-              size: 22,
-            );
+            return IconThemeData(color: colorScheme.primary, size: 22);
           }
           return IconThemeData(
             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
@@ -189,19 +210,23 @@ class AppTheme {
 
       // Chips — translucent
       chipTheme: ChipThemeData(
-        backgroundColor: colorScheme.surfaceContainerHighest
-            .withValues(alpha: 0.6),
-        selectedColor: colorScheme.secondaryContainer
-            .withValues(alpha: 0.7),
-        labelStyle: TextStyle(color: colorScheme.onSurface, fontFamily: fontFamily),
+        backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.6,
+        ),
+        selectedColor: colorScheme.secondaryContainer.withValues(alpha: 0.7),
+        labelStyle: TextStyle(
+          color: colorScheme.onSurface,
+          fontFamily: fontFamily,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
 
       // Input fields — glass fill
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest
-            .withValues(alpha: isDark ? 0.4 : 0.5),
+        fillColor: colorScheme.surfaceContainerHighest.withValues(
+          alpha: isDark ? 0.4 : 0.5,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -227,8 +252,9 @@ class AppTheme {
       // ElevatedButton — glass with primary tint
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary
-              .withValues(alpha: isDark ? 0.8 : 0.9),
+          backgroundColor: colorScheme.primary.withValues(
+            alpha: isDark ? 0.8 : 0.9,
+          ),
           foregroundColor: colorScheme.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -241,8 +267,9 @@ class AppTheme {
       // FilledButton — Aurora glass (not Material filled)
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: colorScheme.primary
-              .withValues(alpha: isDark ? 0.7 : 0.75),
+          backgroundColor: colorScheme.primary.withValues(
+            alpha: isDark ? 0.7 : 0.75,
+          ),
           foregroundColor: colorScheme.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -255,7 +282,6 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
-
 
       // TextButton
       textButtonTheme: TextButtonThemeData(
@@ -280,8 +306,9 @@ class AppTheme {
 
       // BottomSheet — glass top surface
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: colorScheme.surface
-            .withValues(alpha: isDark ? 0.85 : 0.90),
+        backgroundColor: colorScheme.surface.withValues(
+          alpha: isDark ? 0.85 : 0.90,
+        ),
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -290,17 +317,20 @@ class AppTheme {
 
       // Dialog — glass panel
       dialogTheme: DialogThemeData(
-        backgroundColor: colorScheme.surfaceContainerHigh
-            .withValues(alpha: isDark ? 0.85 : 0.90),
+        backgroundColor: colorScheme.surfaceContainerHigh.withValues(
+          alpha: isDark ? 0.85 : 0.90,
+        ),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
 
       // SnackBar — glass floating
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: colorScheme.inverseSurface
-            .withValues(alpha: 0.85),
-        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface, fontFamily: fontFamily),
+        backgroundColor: colorScheme.inverseSurface.withValues(alpha: 0.85),
+        contentTextStyle: TextStyle(
+          color: colorScheme.onInverseSurface,
+          fontFamily: fontFamily,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         behavior: SnackBarBehavior.floating,
       ),
@@ -308,8 +338,9 @@ class AppTheme {
       // ListTile
       listTileTheme: ListTileThemeData(
         tileColor: Colors.transparent,
-        selectedTileColor: colorScheme.secondaryContainer
-            .withValues(alpha: 0.6),
+        selectedTileColor: colorScheme.secondaryContainer.withValues(
+          alpha: 0.6,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 

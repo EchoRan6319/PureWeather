@@ -14,6 +14,12 @@ enum LocationAccuracyLevel { district, street }
 /// - enUS: English (US)
 enum AppLanguage { system, zhCN, enUS }
 
+/// AI 服务提供商枚举
+///
+/// - openAiCompatible: OpenAI 兼容接口
+/// - anthropic: Anthropic Messages API
+enum AiProviderType { openAiCompatible, anthropic }
+
 /// 应用设置类
 ///
 /// 管理应用的所有设置选项
@@ -42,6 +48,18 @@ class AppSettings {
   /// 是否显示天气助手
   final bool showAIAssistant;
 
+  /// AI 服务提供商
+  final AiProviderType aiProviderType;
+
+  /// AI 服务 API Key
+  final String aiApiKey;
+
+  /// AI 服务基础地址
+  final String aiBaseUrl;
+
+  /// AI 模型名称
+  final String aiModel;
+
   /// 位置精度级别
   final LocationAccuracyLevel locationAccuracyLevel;
 
@@ -60,7 +78,11 @@ class AppSettings {
     this.refreshInterval = 30,
     this.temperatureUnit = 'celsius',
     this.showFeelsLike = true,
-    this.showAIAssistant = true,
+    this.showAIAssistant = false,
+    this.aiProviderType = AiProviderType.openAiCompatible,
+    this.aiApiKey = '',
+    this.aiBaseUrl = 'https://api.openai.com/v1',
+    this.aiModel = '',
     this.locationAccuracyLevel = LocationAccuracyLevel.district,
     this.appLanguage = AppLanguage.system,
     this.weatherCardOrder = const [
@@ -82,6 +104,10 @@ class AppSettings {
   /// [temperatureUnit]: 温度单位
   /// [showFeelsLike]: 是否显示体感温度
   /// [showAIAssistant]: 是否显示天气助手
+  /// [aiProviderType]: AI 服务提供商
+  /// [aiApiKey]: AI 服务 API Key
+  /// [aiBaseUrl]: AI 服务基础地址
+  /// [aiModel]: AI 模型名称
   /// [locationAccuracyLevel]: 位置精度级别
   /// [appLanguage]: 应用语言
   /// [weatherCardOrder]: 天气卡片顺序
@@ -94,6 +120,10 @@ class AppSettings {
     String? temperatureUnit,
     bool? showFeelsLike,
     bool? showAIAssistant,
+    AiProviderType? aiProviderType,
+    String? aiApiKey,
+    String? aiBaseUrl,
+    String? aiModel,
     LocationAccuracyLevel? locationAccuracyLevel,
     AppLanguage? appLanguage,
     List<String>? weatherCardOrder,
@@ -110,6 +140,10 @@ class AppSettings {
       temperatureUnit: temperatureUnit ?? this.temperatureUnit,
       showFeelsLike: showFeelsLike ?? this.showFeelsLike,
       showAIAssistant: showAIAssistant ?? this.showAIAssistant,
+      aiProviderType: aiProviderType ?? this.aiProviderType,
+      aiApiKey: aiApiKey ?? this.aiApiKey,
+      aiBaseUrl: aiBaseUrl ?? this.aiBaseUrl,
+      aiModel: aiModel ?? this.aiModel,
       locationAccuracyLevel:
           locationAccuracyLevel ?? this.locationAccuracyLevel,
       appLanguage: appLanguage ?? this.appLanguage,
@@ -147,6 +181,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// 显示天气助手设置键
   static const String _keyShowAIAssistant = 'show_ai_assistant';
 
+  /// AI 服务提供商设置键
+  static const String _keyAiProviderType = 'ai_provider_type';
+
+  /// AI 服务 API Key 设置键
+  static const String _keyAiApiKey = 'ai_api_key';
+
+  /// AI 服务基础地址设置键
+  static const String _keyAiBaseUrl = 'ai_base_url';
+
+  /// AI 模型名称设置键
+  static const String _keyAiModel = 'ai_model';
+
   /// 位置精度级别设置键
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
 
@@ -176,6 +222,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final savedLanguage = prefs.getString(_keyAppLanguage);
     final appLanguage = _parseAppLanguage(savedLanguage);
 
+    // 加载 AI 设置
+    final aiProviderType = _parseAiProviderType(
+      prefs.getString(_keyAiProviderType),
+    );
+
     // 加载并修复天气卡片顺序
     final savedOrder = prefs.getStringList(_keyWeatherCardOrder);
     const validOrder = ['hourly', 'daily', 'airQuality', 'details', 'indices'];
@@ -194,7 +245,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       refreshInterval: prefs.getInt(_keyRefreshInterval) ?? 30,
       temperatureUnit: prefs.getString(_keyTemperatureUnit) ?? 'celsius',
       showFeelsLike: prefs.getBool(_keyShowFeelsLike) ?? true,
-      showAIAssistant: prefs.getBool(_keyShowAIAssistant) ?? true,
+      showAIAssistant: prefs.getBool(_keyShowAIAssistant) ?? false,
+      aiProviderType: aiProviderType,
+      aiApiKey: prefs.getString(_keyAiApiKey) ?? '',
+      aiBaseUrl:
+          prefs.getString(_keyAiBaseUrl) ?? _defaultAiBaseUrl(aiProviderType),
+      aiModel: prefs.getString(_keyAiModel) ?? '',
       locationAccuracyLevel: accuracyLevel,
       appLanguage: appLanguage,
       weatherCardOrder: validatedOrder,
@@ -273,6 +329,53 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(showAIAssistant: value);
   }
 
+  /// 设置 AI 服务提供商
+  ///
+  /// [value]: AI 服务提供商
+  Future<void> setAiProviderType(AiProviderType value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAiProviderType, _serializeAiProviderType(value));
+    final currentBaseUrl = state.aiBaseUrl.trim();
+    final shouldUseDefault =
+        currentBaseUrl.isEmpty ||
+        currentBaseUrl == _defaultAiBaseUrl(state.aiProviderType);
+    final nextBaseUrl = shouldUseDefault
+        ? _defaultAiBaseUrl(value)
+        : currentBaseUrl;
+    await prefs.setString(_keyAiBaseUrl, nextBaseUrl);
+    state = state.copyWith(aiProviderType: value, aiBaseUrl: nextBaseUrl);
+  }
+
+  /// 设置 AI 服务 API Key
+  ///
+  /// [value]: AI 服务 API Key
+  Future<void> setAiApiKey(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final trimmed = value.trim();
+    await prefs.setString(_keyAiApiKey, trimmed);
+    state = state.copyWith(aiApiKey: trimmed);
+  }
+
+  /// 设置 AI 服务基础地址
+  ///
+  /// [value]: AI 服务基础地址
+  Future<void> setAiBaseUrl(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final normalized = value.trim();
+    await prefs.setString(_keyAiBaseUrl, normalized);
+    state = state.copyWith(aiBaseUrl: normalized);
+  }
+
+  /// 设置 AI 模型名称
+  ///
+  /// [value]: AI 模型名称
+  Future<void> setAiModel(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final trimmed = value.trim();
+    await prefs.setString(_keyAiModel, trimmed);
+    state = state.copyWith(aiModel: trimmed);
+  }
+
   /// 设置位置精度级别
   ///
   /// [value]: 位置精度级别
@@ -341,6 +444,33 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         return AppLanguage.enUS;
       default:
         return AppLanguage.system;
+    }
+  }
+
+  AiProviderType _parseAiProviderType(String? value) {
+    switch (value) {
+      case 'anthropic':
+        return AiProviderType.anthropic;
+      default:
+        return AiProviderType.openAiCompatible;
+    }
+  }
+
+  String _serializeAiProviderType(AiProviderType value) {
+    switch (value) {
+      case AiProviderType.anthropic:
+        return 'anthropic';
+      case AiProviderType.openAiCompatible:
+        return 'openai_compatible';
+    }
+  }
+
+  String _defaultAiBaseUrl(AiProviderType value) {
+    switch (value) {
+      case AiProviderType.anthropic:
+        return 'https://api.anthropic.com/v1';
+      case AiProviderType.openAiCompatible:
+        return 'https://api.openai.com/v1';
     }
   }
 

@@ -20,6 +20,7 @@ class WeatherCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.uiTokens;
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: tokens.cardBackground,
         borderRadius: BorderRadius.circular(16),
@@ -46,8 +47,8 @@ class WeatherCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),

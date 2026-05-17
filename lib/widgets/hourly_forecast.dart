@@ -84,8 +84,12 @@ class _HourlyForecastState extends State<HourlyForecast> {
   void _scheduleNextHourRefresh() {
     _hourRefreshTimer?.cancel();
     final now = DateTime.now();
-    final nextHour = DateTime(now.year, now.month, now.day, now.hour)
-        .add(const Duration(hours: 1));
+    final nextHour = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+    ).add(const Duration(hours: 1));
     _hourRefreshTimer = Timer(nextHour.difference(now), () {
       if (!mounted) return;
       setState(() {
@@ -104,10 +108,7 @@ class _HourlyForecastState extends State<HourlyForecast> {
     final now = DateTime.now();
 
     if (_filteredHourly.isEmpty) {
-      return _buildEmptyState(
-        context,
-        subtitle: context.tr('小时数据已过期或时间解析失败'),
-      );
+      return _buildEmptyState(context, subtitle: context.tr('小时数据已过期或时间解析失败'));
     }
 
     return Container(
@@ -180,9 +181,9 @@ class _HourlyForecastState extends State<HourlyForecast> {
         const SizedBox(width: 8),
         Text(
           context.tr('24小时预报'),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -268,8 +269,10 @@ class _HourlyForecastState extends State<HourlyForecast> {
     parsed.sort((a, b) => a.value.compareTo(b.value));
     final windowEnd = now.add(const Duration(hours: 24));
     final upcoming = parsed
-        .where((entry) =>
-            !entry.value.isBefore(now) && !entry.value.isAfter(windowEnd))
+        .where(
+          (entry) =>
+              !entry.value.isBefore(now) && !entry.value.isAfter(windowEnd),
+        )
         .map((entry) => entry.key)
         .toList();
     if (upcoming.isNotEmpty) {
@@ -278,9 +281,11 @@ class _HourlyForecastState extends State<HourlyForecast> {
 
     final alignedWindowStart = DateTime(now.year, now.month, now.day, now.hour);
     final fallback = parsed
-        .where((entry) =>
-            !entry.value.isBefore(alignedWindowStart) &&
-            !entry.value.isAfter(windowEnd))
+        .where(
+          (entry) =>
+              !entry.value.isBefore(alignedWindowStart) &&
+              !entry.value.isAfter(windowEnd),
+        )
         .map((entry) => entry.key)
         .toList();
     if (fallback.isNotEmpty) {
@@ -295,7 +300,6 @@ class _HourlyForecastState extends State<HourlyForecast> {
 
     return const <HourlyWeather>[];
   }
-
 }
 
 /// 小时天气预报项组件
@@ -351,9 +355,9 @@ class _HourlyItem extends StatelessWidget {
     if (time == null) {
       return Text(
         '--:--',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
       );
     }
 
@@ -361,10 +365,9 @@ class _HourlyItem extends StatelessWidget {
 
     return Text(
       timeText,
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: colorScheme.onSurfaceVariant,
-        fontSize: 11,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
       textAlign: TextAlign.center,
     );
   }
@@ -385,31 +388,30 @@ class _HourlyItem extends StatelessWidget {
     final unit = temperatureUnit == 'fahrenheit' ? '°F' : '°';
     return Text(
       '$convertedTemp$unit',
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 
   Widget _buildPrecipitation(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          LucideIcons.droplet,
-          size: 10,
-          color: Theme.of(context).colorScheme.tertiary,
-        ),
-        const SizedBox(width: 1),
-        Text(
-          '${weather.pop}%',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.tertiary,
-            fontSize: 9,
-          ),
-        ),
-      ],
-    )
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              LucideIcons.droplet,
+              size: 12,
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
+            const SizedBox(width: 2),
+            Text(
+              '${weather.pop}%',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
+            ),
+          ],
+        )
         .animate()
         .fadeIn(duration: 400.ms, curve: Curves.easeInOut)
         .slideY(begin: 0.3, end: 0, duration: 400.ms, curve: Curves.easeInOut);

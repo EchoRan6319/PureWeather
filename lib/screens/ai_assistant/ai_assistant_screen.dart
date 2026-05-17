@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../app_localizations.dart';
 import '../../services/deepseek_service.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../models/weather_models.dart';
@@ -48,6 +49,20 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty || _isTyping) return;
+
+    final aiSettings = ref.read(settingsProvider);
+    final isAiConfigured =
+        aiSettings.aiApiKey.trim().isNotEmpty &&
+        aiSettings.aiBaseUrl.trim().isNotEmpty &&
+        aiSettings.aiModel.trim().isNotEmpty;
+    if (!isAiConfigured) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr('请先在设置 > AI 设置中填写 API Key、接口地址和模型名称。')),
+        ),
+      );
+      return;
+    }
 
     _messageController.clear();
     _focusNode.unfocus();
@@ -233,6 +248,11 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   @override
   Widget build(BuildContext context) {
     final chatSession = ref.watch(chatProvider);
+    final aiSettings = ref.watch(settingsProvider);
+    final isAiConfigured =
+        aiSettings.aiApiKey.trim().isNotEmpty &&
+        aiSettings.aiBaseUrl.trim().isNotEmpty &&
+        aiSettings.aiModel.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -278,12 +298,12 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
                               },
                             ),
                             child: chatSession.messages.isEmpty
-                                ? _buildEmptyState()
+                                ? _buildEmptyState(isAiConfigured)
                                 : _buildChatList(chatSession),
                           ),
                         ),
                         if (_isTyping) _buildTypingIndicator(),
-                        _buildInputArea(),
+                        _buildInputArea(isAiConfigured),
                       ],
                     ),
                   ),
@@ -297,7 +317,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   }
 
   /// 构建空状态
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isAiConfigured) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -326,23 +346,28 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               ).animate().fadeIn(delay: 200.ms),
               const SizedBox(height: 8),
               Text(
-                context.tr('我可以帮你解答天气相关问题，提供穿衣建议、出行提醒等'),
+                context.tr(
+                  isAiConfigured
+                      ? '我可以帮你解答天气相关问题，提供穿衣建议、出行提醒等'
+                      : '请先在设置 > AI 设置中填写 API Key、接口地址和模型名称。',
+                ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ).animate().fadeIn(delay: 300.ms),
               const SizedBox(height: 32),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildQuickAction(context.tr('今天适合户外运动吗？')),
-                  _buildQuickAction(context.tr('明天需要带伞吗？')),
-                  _buildQuickAction(context.tr('今天穿什么合适？')),
-                ],
-              ).animate().fadeIn(delay: 400.ms),
+              if (isAiConfigured)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _buildQuickAction(context.tr('今天适合户外运动吗？')),
+                    _buildQuickAction(context.tr('明天需要带伞吗？')),
+                    _buildQuickAction(context.tr('今天穿什么合适？')),
+                  ],
+                ).animate().fadeIn(delay: 400.ms),
             ],
           ),
         ),
@@ -435,7 +460,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   }
 
   /// 构建输入区域
-  Widget _buildInputArea() {
+  Widget _buildInputArea(bool isAiConfigured) {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
@@ -451,7 +476,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
               controller: _messageController,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: context.tr('输入消息...'),
+                hintText: context.tr(isAiConfigured ? '输入消息...' : '请先完成 AI 设置'),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
@@ -474,6 +499,7 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
                 ),
               ),
               maxLines: null,
+              enabled: isAiConfigured,
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _sendMessage(),
             ),
@@ -481,7 +507,8 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
           const SizedBox(width: 8),
           IconButton(
             icon: const Icon(LucideIcons.send),
-            onPressed: _isTyping ? null : _sendMessage,
+            tooltip: context.tr('发送'),
+            onPressed: _isTyping || !isAiConfigured ? null : _sendMessage,
           ),
         ],
       ),
