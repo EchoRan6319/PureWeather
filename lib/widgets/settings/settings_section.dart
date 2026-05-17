@@ -19,6 +19,9 @@ class SettingsSection extends StatelessWidget {
   /// 是否显示分隔线
   final bool showDividers;
 
+  /// 分组标题颜色
+  final Color? titleColor;
+
   /// 动画延迟（毫秒）
   final int animationDelay;
 
@@ -28,6 +31,7 @@ class SettingsSection extends StatelessWidget {
     required this.icon,
     required this.children,
     this.showDividers = true,
+    this.titleColor,
     this.animationDelay = 0,
   });
 
@@ -36,6 +40,7 @@ class SettingsSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final tokens = context.uiTokens;
+    final resolvedTitleColor = titleColor ?? colorScheme.primary;
 
     // 构建带分隔线的子组件列表
     final List<Widget> childrenWithDividers = [];
@@ -63,12 +68,12 @@ class SettingsSection extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
                   children: [
-                    Icon(icon, size: 18, color: colorScheme.primary),
+                    Icon(icon, size: 18, color: resolvedTitleColor),
                     const SizedBox(width: 8),
                     Text(
                       context.tr(title),
                       style: textTheme.titleSmall?.copyWith(
-                        color: colorScheme.primary,
+                        color: resolvedTitleColor,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
                       ),

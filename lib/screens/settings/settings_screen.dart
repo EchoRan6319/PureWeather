@@ -25,6 +25,11 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeSettings = ref.watch(themeProvider);
     final appSettings = ref.watch(settingsProvider);
+    final weatherState = ref.watch(weatherProvider);
+    final weatherCode = weatherState.weatherData != null
+        ? int.tryParse(weatherState.weatherData!.current.icon) ?? 100
+        : null;
+    final weatherContrast = context.weatherContrastColorsFor(weatherCode);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -60,6 +65,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '个性化',
                             icon: LucideIcons.palette,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 0,
                             children: [
                               SettingsListTile(
@@ -80,6 +86,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '通知',
                             icon: LucideIcons.bell,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 50,
                             children: [
                               SettingsSwitchTile(
@@ -235,6 +242,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '显示',
                             icon: LucideIcons.eye,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 100,
                             children: [
                               SettingsListTile(
@@ -288,6 +296,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: 'AI 设置',
                             icon: LucideIcons.brain,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 150,
                             children: [
                               SettingsSwitchTile(
@@ -313,6 +322,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '数据',
                             icon: LucideIcons.refreshCw,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 200,
                             children: [
                               SettingsSwitchTile(
@@ -352,6 +362,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '高级',
                             icon: LucideIcons.slidersHorizontal,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 250,
                             children: [
                               SettingsSwitchTile(
@@ -371,6 +382,7 @@ class SettingsScreen extends ConsumerWidget {
                           SettingsSection(
                             title: '关于',
                             icon: LucideIcons.info,
+                            titleColor: weatherContrast.accent,
                             animationDelay: 300,
                             children: [
                               SettingsListTile(
@@ -402,7 +414,16 @@ class SettingsScreen extends ConsumerWidget {
         );
 
         return Scaffold(
-          appBar: AppBar(title: Text(context.tr('设置'))),
+          appBar: AppBar(
+            title: Text(context.tr('设置')),
+            foregroundColor: weatherContrast.foreground,
+            iconTheme: IconThemeData(color: weatherContrast.foreground),
+            actionsIconTheme: IconThemeData(color: weatherContrast.foreground),
+            titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: weatherContrast.foreground,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           body: scaffoldBody,
         );
       },

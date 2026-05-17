@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'aurora_gradient_scheme.dart';
 
 @immutable
 class AppUiTokens extends ThemeExtension<AppUiTokens> {
@@ -106,11 +107,60 @@ class AppUiTokens extends ThemeExtension<AppUiTokens> {
   }
 }
 
+@immutable
+class WeatherContrastColors {
+  final Color accent;
+  final Color foreground;
+  final Color muted;
+  final Color divider;
+
+  const WeatherContrastColors({
+    required this.accent,
+    required this.foreground,
+    required this.muted,
+    required this.divider,
+  });
+}
+
 extension AppThemeContext on BuildContext {
   AppUiTokens get uiTokens {
     final theme = Theme.of(this);
     return theme.extension<AppUiTokens>() ??
         AppUiTokens.fromColorScheme(theme.colorScheme);
+  }
+
+  WeatherContrastColors weatherContrastColorsFor(int? weatherCode) {
+    final theme = Theme.of(this);
+    final colorScheme = theme.colorScheme;
+
+    if (weatherCode == null) {
+      return WeatherContrastColors(
+        accent: colorScheme.primary,
+        foreground: colorScheme.onSurface,
+        muted: colorScheme.onSurfaceVariant,
+        divider: colorScheme.outline,
+      );
+    }
+
+    final useLightForeground = WeatherGradientScheme.prefersLightForeground(
+      weatherCode,
+      isDark: theme.brightness == Brightness.dark,
+    );
+
+    return WeatherContrastColors(
+      accent: useLightForeground
+          ? Colors.white.withValues(alpha: 0.94)
+          : colorScheme.primary,
+      foreground: useLightForeground
+          ? Colors.white.withValues(alpha: 0.94)
+          : colorScheme.onSurface,
+      muted: useLightForeground
+          ? Colors.white.withValues(alpha: 0.72)
+          : colorScheme.onSurfaceVariant,
+      divider: useLightForeground
+          ? Colors.white.withValues(alpha: 0.42)
+          : colorScheme.outline,
+    );
   }
 }
 

@@ -8,6 +8,7 @@ import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/theme/aurora_gradient_scheme.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/caiyun_service.dart';
 import '../../widgets/hourly_forecast.dart';
@@ -41,6 +42,10 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      elevation: 0,
+      clipBehavior: Clip.none,
       builder: (context) => _CitySelectorSheet(
         onCitySelected: (location, {bool isLocated = false}) async {
           Navigator.pop(context);
@@ -150,6 +155,20 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       sunrise: todayDaily?.sunrise,
       sunset: todayDaily?.sunset,
     );
+    final weatherCode = int.tryParse(weather.current.icon) ?? 100;
+    final useLightForeground = WeatherGradientScheme.prefersLightForeground(
+      weatherCode,
+      isDark: Theme.of(context).brightness == Brightness.dark,
+    );
+    final foregroundColor = useLightForeground
+        ? Colors.white.withValues(alpha: 0.94)
+        : Theme.of(context).colorScheme.onSurface;
+    final mutedForegroundColor = useLightForeground
+        ? Colors.white.withValues(alpha: 0.72)
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    final dividerColor = useLightForeground
+        ? Colors.white.withValues(alpha: 0.42)
+        : Theme.of(context).colorScheme.outline;
 
     return Container(
       color: Colors.transparent,
@@ -181,14 +200,20 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                     Text(
                       location?.name ?? context.tr('未知位置'),
                       style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w500),
+                          ?.copyWith(
+                            color: foregroundColor,
+                            fontWeight: FontWeight.w500,
+                          ),
                     ),
                   ],
                 ),
                 Positioned(
                   right: 0,
                   child: IconButton(
-                    icon: const Icon(LucideIcons.navigation),
+                    icon: Icon(
+                      LucideIcons.navigation,
+                      color: mutedForegroundColor,
+                    ),
                     onPressed: _showCitySelector,
                     tooltip: context.tr('导航'),
                   ),
@@ -207,6 +232,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                     toFahrenheit: settings.temperatureUnit == 'fahrenheit',
                   ),
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    color: foregroundColor,
                     fontWeight: FontWeight.w300,
                     fontSize: 72,
                   ),
@@ -215,7 +241,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
                     settings.temperatureUnit == 'fahrenheit' ? '°F' : '°',
-                    style: Theme.of(context).textTheme.displayMedium,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.displayMedium?.copyWith(color: foregroundColor),
                   ),
                 ),
               ],
@@ -236,7 +264,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 const SizedBox(width: 8),
                 Text(
                   context.tr(weather.current.text),
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(color: foregroundColor),
                 ),
               ],
             ),
@@ -249,27 +279,33 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   _buildTempInfo(
                     context.tr('最高'),
                     '${WeatherCode.convertTemperature(todayDaily.tempMax, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                    foregroundColor: foregroundColor,
+                    mutedForegroundColor: mutedForegroundColor,
                   ),
                   Container(
                     width: 1,
                     height: 16,
                     margin: const EdgeInsets.symmetric(horizontal: 16),
-                    color: Theme.of(context).colorScheme.outline,
+                    color: dividerColor,
                   ),
                   _buildTempInfo(
                     context.tr('最低'),
                     '${WeatherCode.convertTemperature(todayDaily.tempMin, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                    foregroundColor: foregroundColor,
+                    mutedForegroundColor: mutedForegroundColor,
                   ),
                   Container(
                     width: 1,
                     height: 16,
                     margin: const EdgeInsets.symmetric(horizontal: 16),
-                    color: Theme.of(context).colorScheme.outline,
+                    color: dividerColor,
                   ),
                 ],
                 _buildTempInfo(
                   context.tr('体感'),
                   '${WeatherCode.convertTemperature(weather.current.feelsLike, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
+                  foregroundColor: foregroundColor,
+                  mutedForegroundColor: mutedForegroundColor,
                 ),
               ],
             ),
@@ -283,20 +319,28 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   ///
   /// [label]: 标签
   /// [value]: 值
-  Widget _buildTempInfo(String label, String value) {
+  Widget _buildTempInfo(
+    String label,
+    String value, {
+    Color? foregroundColor,
+    Color? mutedForegroundColor,
+  }) {
     return Column(
       children: [
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color:
+                mutedForegroundColor ??
+                Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         Text(
           value,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: foregroundColor,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

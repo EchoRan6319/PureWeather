@@ -19,6 +19,20 @@ class WeatherGradientScheme {
   static bool isRainy(int code) => code >= 300 && code <= 399;
   static bool isSnowy(int code) => code >= 400 && code <= 499;
 
+  /// Whether foreground content placed directly on the Aurora background should
+  /// use light colors for sufficient contrast.
+  static bool prefersLightForeground(int code, {bool isDark = false}) {
+    final colors = forCode(code, isDark: isDark);
+    final upperBackgroundColors = colors.take(2);
+    final averageLuminance =
+        upperBackgroundColors
+            .map((color) => color.computeLuminance())
+            .reduce((sum, value) => sum + value) /
+        upperBackgroundColors.length;
+
+    return averageLuminance < 0.36;
+  }
+
   // ── Light gradients ────────────────────────────
 
   static const List<Color> _sunnyLight = [

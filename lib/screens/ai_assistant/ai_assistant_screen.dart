@@ -249,6 +249,11 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
   Widget build(BuildContext context) {
     final chatSession = ref.watch(chatProvider);
     final aiSettings = ref.watch(settingsProvider);
+    final weatherState = ref.watch(weatherProvider);
+    final weatherCode = weatherState.weatherData != null
+        ? int.tryParse(weatherState.weatherData!.current.icon) ?? 100
+        : null;
+    final weatherContrast = context.weatherContrastColorsFor(weatherCode);
     final isAiConfigured =
         aiSettings.aiApiKey.trim().isNotEmpty &&
         aiSettings.aiBaseUrl.trim().isNotEmpty &&
@@ -257,6 +262,13 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.tr('天气助手')),
+        foregroundColor: weatherContrast.foreground,
+        iconTheme: IconThemeData(color: weatherContrast.foreground),
+        actionsIconTheme: IconThemeData(color: weatherContrast.foreground),
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: weatherContrast.foreground,
+          fontWeight: FontWeight.w600,
+        ),
         actions: [
           if (chatSession.messages.isNotEmpty)
             IconButton(
